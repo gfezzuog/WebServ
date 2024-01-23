@@ -18,5 +18,22 @@ void Server::connect(int kQueue)
     bool b = 1;
     setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR, &b, sizeof(int));
     setsockopt(_sockfd, SOL_SOCKET, SO_NOSIGPIPE, &b, sizeof(int));
-    
+    _sockAddress.sin_port =  htons(_port);
+    //if bind (sock_fd, (struct sockaddr*) &_sockAddr, sizeof(_sockAddr)) < 0
+    // OperSocketException
+    // if(listen(_sockfd, 10) < 0)
+    // Open SocketExcpetion
+    EV_SET (&_evSet, _sockfd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+    //kevent??
+    std::cout<< "Connected to host: " << _host << " and port: "<< _port <<std::endl;
+}
+
+void Server::disconnect()
+{
+    close(_sockfd);
+}
+
+Configuration Server::getConfig()
+{
+    return *_config;
 }
