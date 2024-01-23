@@ -1,7 +1,7 @@
 #include "WebServer.h"
 
 
-Server::Server(unsigned int port, std::string host): _port(port), _host(host)
+Server::Server(unsigned int port, std::string host, Configuration *config): _port(port), _host(host), _config(config)
 {}
 
 
@@ -24,7 +24,7 @@ void Server::connect(int kQueue)
     // if(listen(_sockfd, 10) < 0)
     // Open SocketExcpetion
     EV_SET (&_evSet, _sockfd, EVFILT_READ, EV_ADD, 0, 0, NULL);
-    //kevent??
+    int n_fds = select(maxfd + 1, &readfds, nullptr, nullptr, nullptr);
     std::cout<< "Connected to host: " << _host << " and port: "<< _port <<std::endl;
 }
 

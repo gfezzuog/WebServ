@@ -28,5 +28,6 @@
 # include <map>
 # include <algorithm>
 # include "Server.hpp"
+# include "Config.hpp"
 
 #endif
