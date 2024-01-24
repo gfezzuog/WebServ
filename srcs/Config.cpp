@@ -15,7 +15,7 @@ Configuration::Configuration(std::string config)
 
 }
 
-std::string GetHostPort()
+std::string Configuration::GetHostPort()
 {
 	try
 	{
@@ -28,48 +28,48 @@ std::string GetHostPort()
 	}
 }
 
-std::string GetHost()
+std::string Configuration::GetHost()
 {
     std::string hp = GetHostPort();
     return hp.substr(0,  hp.find(':', 0));
 }
 
-unsigned int GetPort()
+unsigned int Configuration::GetPort()
 {
     std::string hp = GetHostPort();
     //return hp.substr();
 }
 
-std::map<std::string, ConfigurationRoute> GetConfigsRoute() const
+std::map<std::string, ConfigurationRoute> Configuration::GetConfigsRoute() const
 {
 }
 
-std::string GetServerName()
+std::string Configuration::GetServerName()
 {
     return _map["server_name"];
 }
 
-size_t GetLimitSizeBody()
+size_t Configuration::GetLimitSizeBody()
 {
-    std::sring limitSize = _map["max_body_size"].c_str();
+    std::string limitSize = _map["max_body_size"].c_str();
     if(limitSize.empty())
         return LLONG_MAX;
     return std::atoi(limitSize.c_str());
 }
 
-int GetRedirectionCode()
+int Configuration::GetRedirectionCode()
 {
     if (!_map["return"].empty())
 		return std::atoi(_map["return"].substr(0, 3).c_str());
 	return 0;
 }
 
-std::string GetRedirectionUrl()
+std::string Configuration::GetRedirectionUrl()
 {
     //to see
 }
 
-std::string GetErrorPath()
+std::string Configuration::GetErrorPath(std::string code) const
 {
     try
 	{
@@ -79,4 +79,4 @@ std::string GetErrorPath()
 	{
 		return "errors/error_500.html";
 	}
-}
+}	

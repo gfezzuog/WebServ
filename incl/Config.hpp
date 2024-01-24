@@ -23,7 +23,5 @@ class Configuration
     size_t GetLimitSizeBody();
     int GetRedirectionCode();
     std::string GetRedirectionUrl();
-    std::string GetErrorPath();
-}
-
-#endif
+    std::string GetErrorPath(std::string code) const;
+};

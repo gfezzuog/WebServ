@@ -2,6 +2,8 @@
 
 #include "WebServer.h"
 
+class Configuration;
+
 class Server
 {
 private:
@@ -12,13 +14,11 @@ private:
     int _maxfd;
     fd_set _readfds;
     Configuration *_config;
-    
-    
 public:
     Server(unsigned int port, std::string host, Configuration *config);
     ~Server();
 
-    void connect(int kQueue);
+    void connect();
     void disconnect();
     int getSocketfd() {return _socketfd;}
     int getPort() {return _port;}
@@ -29,6 +29,6 @@ public:
         hostPort.append(":");
         return hostPort.append(std::to_string(_port));
     }
-    sockaddr_in* getSocketAddr () {return *_sockAddress};
-    Config *GetConfig() {return *_config;}
+    sockaddr_in* getSocketAddr () {return &_sockAddress;}
+    Configuration GetConfig() {return *_config;}
 };
