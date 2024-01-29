@@ -1,4 +1,3 @@
-#pragma once
 #include "WebServer.h"
 
 class OpenSocketException: public std::exception {

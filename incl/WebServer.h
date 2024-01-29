@@ -22,7 +22,6 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <signal.h>
-# include <cassert>
 # include <ctime>
 # include <string>
 # include <iostream>
@@ -33,7 +32,6 @@
 # include <algorithm>
 # include "Server.hpp"
 # include "Config.hpp"
-# include "Client.hpp"
 # include "OpenSocketException.hpp"
 
 #endif

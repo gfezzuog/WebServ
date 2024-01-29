@@ -28,6 +28,7 @@ void Server::connect()
         throw OpenSocketException(std::string("Failed to listen on socket. errno: ").append(std::to_string(errno)));
     //EV_SET (&_evSet, _socketfd, EVFILT_READ, EV_ADD, 0, 0, NULL);
     int n_fds = select(_maxfd + 1, &_readfds, nullptr, nullptr, nullptr);
+    
     std::cout<< "Connected to host: " << _host << " and port: "<< _port <<std::endl;
 }
 
