@@ -1,30 +1,37 @@
 #include "ConfigFile.hpp"
 
 ConfigFile::ConfigFile(std::string inputfile): _file(inputfile){
-	//try
-	std::stringstream buffer;
-	buffer << _file.rdbuf();
-	if(buffer.fail()){
-		std::cerr << "Error: Invalid configuration file: " << inputfile << std::endl;
+	try{
+		std::stringstream buffer;
+		buffer << _file.rdbuf();
+		if(buffer.fail()){
+			std::cerr << "Error: Invalid configuration file: " << inputfile << std::endl;
+			exit(1);
+		}
+		_content = buffer.str();
+		_configString = splitString(_content);
+		std::vector<std::string>::iterator it = _configString.begin();
+		for( ; it != _configString.end(); it++)
+			_configs.push_back(Configuration(*it));
+		setMapConfigs();
+	}
+	catch(const std::exception& e){
+		std::cerr << "Error: Parsing configuration file gone wrong" << std::endl;
 		exit(1);
 	}
-	_content = buffer.str();
-	_configString = splitString(_content);
-	std::vector<std::string>::iterator it = _configString.begin();
-	for( ; it != _configString.end(); it++)
-		_configs.push_back(Configuration(*it));
-	//need to add set map configs
-	/*catch(const std::exception& e){
-		std::cerr << "Error: Parsing configuration file gone wrong << std::endl"
-		exit(1);
-	}*/
 }
 
 ConfigFile::~ConfigFile(){
 }
 
-std::vector<std::string> ConfigFile::splitString(std::string content) {
-    std::vector<std::string> result;
+void ConfigFile::setMapConfigs(){
+	std::vector<Configuration>::iterator it1 = _configs.begin();
+	for( ; it1 != _configs.end(); it1++)
+		_mapConfigs[(*it1).GetHostPort()].push_back(*it1);
+}
+
+std::vector<std::string> ConfigFile::splitString(std::string content){
+	std::vector<std::string> result;
     std::string::size_type start;
 	std::string::size_type end = 0;
 
@@ -56,6 +63,11 @@ std::vector<std::string> ConfigFile::splitString(std::string content) {
     return (result);
 }
 
-std::vector<Configuration> ConfigFile::getConfigs(){
+std::map<std::string, std::vector<Configuration>> ConfigFile::getMapConfig(){
+	return _mapConfigs;
+}
+
+std::vector<Configuration> ConfigFile::getConfigs()
+{
 	return _configs;
 }

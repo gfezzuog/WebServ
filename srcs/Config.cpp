@@ -1,18 +1,28 @@
 #include "WebServer.h"
+#include "Config.hpp"
 
-Configuration::Configuration()
-{
-
+Configuration::Configuration(){
 }
 
-Configuration::~Configuration()
-{
-    //sets
+Configuration::~Configuration(){
 }
 
-Configuration::Configuration(std::string config)
-{
+Configuration::Configuration(std::string config){
+}
 
+void Configuration::setMap(std::string config){
+	std::string::size_type start;
+	std::string::size_type end = 0;
+
+	while(end < config.size()){
+		start = config.find('{', 0);
+		end = config.find('}', 0);
+		while(config[end - 1] != '\n')
+			end = config.find('}', end + 1);
+		if(end != std::string::npos)
+			_map.insert(std::pair<std::string, std::string>(config.substr(start + 2, end - 2), config.substr(end + 2)));
+		config = config.substr(end + 2);
+	}
 }
 
 std::string Configuration::GetHostPort()

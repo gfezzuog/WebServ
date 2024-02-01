@@ -10,15 +10,13 @@ class ConfigFile{
 			std::string _content;
 			std::vector<std::string> _configString;
 			std::vector<Configuration> _configs;
-			//map <string, config vector> _mapConfigs
-			//setmapConfigs
+			std::map<std::string, std::vector<Configuration>> _mapConfigs;
+			void setMapConfigs();
 			std::vector<std::string> splitString(std::string input);
 		public:
 			ConfigFile(std::string inputfile);
 			~ConfigFile();
-			/*
-			Configuration getConfig by port and server name
-			getMapConfig
-			*/
+			Configuration getConfig(std::string host, std::string servername);
+			std::map<std::string, std::vector<Configuration>> getMapConfig();
 			std::vector<Configuration> getConfigs();
 };

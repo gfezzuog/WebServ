@@ -2,6 +2,27 @@
 
 FileReader::FileReader(const std::string& inputFileName) : inputFileName(inputFileName) {}
 
+std::vector<Configuration> FileReader::DivideServers(std::vector<std::string> servers)
+{
+    //divido il vettore in parti che rappresentano i server e le salvo in un vettore di classi
+    std::vector<Configuration> result;
+    std::string::size_type start;
+    std::vector<std::string> dividedComponents;
+    std::string::size_type end = 0;
+
+    while (content.find('}', 0) != std::string::npos)
+    {
+        start = content.find('{', 0);
+        end = content.find('}', 0);
+        while (content[end - 1] != '\n')
+            end = content.find('}', end + 1);
+        if (end != std::string::npos)
+            result.push_back(content.substr(start + 2, end - 2));
+        content = content.substr(end + 2);
+    }
+    
+}
+
 std::vector<std::string> FileReader::splitString(const std::string& input) {
     std::vector<std::string> result;
     std::string::size_type start;
