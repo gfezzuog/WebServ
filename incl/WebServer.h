@@ -32,6 +32,7 @@
 # include <algorithm>
 # include "Server.hpp"
 # include "Config.hpp"
+# include "ConfigFile.hpp"
 # include "OpenSocketException.hpp"
 
 #endif

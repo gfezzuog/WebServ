@@ -55,3 +55,7 @@ std::vector<std::string> ConfigFile::splitString(std::string content) {
     // result = dividedComponents;
     return (result);
 }
+
+std::vector<Configuration> ConfigFile::getConfigs(){
+	return _configs;
+}
