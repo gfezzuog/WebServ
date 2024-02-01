@@ -19,14 +19,14 @@ Clients::c_data *Clients::get_conn(int fd)
 
 //La funzione fcntl, serve per controllare le proprietà di un fd, il primo argomento è fd, il secondo il comando e il terzo un argomento opzionale dipendete dal comando.
 //int flags = fcntl(fd, F_GETFL, 0); qui controlliamo le flag del nostro fd, nel momento in cui assert non fallisce, settiamo le flag impostando la modalitá non bloccante: fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-int Clients::conn_add(int fd, int _maxfd, fd_set _readsfds)
+int Clients::conn_add(int fd)
 {
 	if (fd < 1)
 		return (-1);
 	int flags = fcntl(fd, F_GETFL, 0);
 	assert(flags >= 0); //è una funzione che controlla la veridicitá dell'espressione, se falsa stampa un messaggio di errore
 	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-	_clients.push_back(c_data(fd, _maxfd, _readsfds));
+	_clients.push_back(c_data(fd));
 	return(0);
 }
 
