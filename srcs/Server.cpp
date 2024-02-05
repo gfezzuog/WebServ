@@ -19,8 +19,8 @@ void Server::connect()
         throw OpenSocketException(std::string("Host: ").append(std::string(_host)).append(" is not valid."));
     bool b = 1;
     setsockopt(_socketfd, SOL_SOCKET, SO_REUSEADDR, &b, sizeof(int));
-    int NoSigPipe = (int)signal(SIGPIPE, SIG_IGN); //NOSIGPIPE macro isn't present on linux, this maybe a fix
-    setsockopt(_socketfd, SOL_SOCKET, NoSigPipe, &b, sizeof(int));
+    // int NoSigPipe = (int)signal(SIGPIPE, SIG_IGN); //NOSIGPIPE macro isn't present on linux, this maybe a fix
+    setsockopt(_socketfd, SOL_SOCKET, MSG_NOSIGNAL, &b, sizeof(int));
     _sockAddress.sin_port =  htons(_port);
     if (bind(_socketfd, (struct sockaddr*) &_sockAddress, sizeof(_sockAddress)) < 0)
         throw OpenSocketException(std::string("Failed to bind socket. errno: ").append(std::to_string(errno)));
@@ -37,3 +37,7 @@ void Server::disconnect()
     close(_socketfd);
 }
 
+Configuration Server::GetConfig()
+{
+    return *_config;
+}

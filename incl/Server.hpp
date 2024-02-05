@@ -30,5 +30,5 @@ public:
         return hostPort.append(std::to_string(_port));
     }
     sockaddr_in* getSocketAddr () {return &_sockAddress;}
-    Configuration GetConfig() {return *_config;}
+    Configuration GetConfig();
 };

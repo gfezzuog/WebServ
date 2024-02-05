@@ -1,4 +1,4 @@
-#include "ConfigFile.hpp"
+#include "../incl/WebServer.h"
 
 ConfigFile::ConfigFile(std::string inputfile): _file(inputfile){
 	try{

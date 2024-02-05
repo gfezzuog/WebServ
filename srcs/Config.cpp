@@ -1,5 +1,4 @@
-#include "WebServer.h"
-#include "Config.hpp"
+#include "../incl/WebServer.h"
 
 Configuration::Configuration(){
 }
@@ -8,6 +7,9 @@ Configuration::~Configuration(){
 }
 
 Configuration::Configuration(std::string config){
+	setMap(config);
+	setConfigsRoute();
+	setMethods();
 }
 
 void Configuration::setMap(std::string config){
@@ -15,13 +17,69 @@ void Configuration::setMap(std::string config){
 	std::string::size_type end = 0;
 
 	while(end < config.size()){
+		start = config.find('=', 0);
+		if(config.substr(1, start - 1) == "routes"){
+			end = config.find('}', 0);
+			while(config.find('}', end + 1) != std::string::npos)
+				end = config.find('}', end + 1);
+			if(end != std::string::npos)
+				_map.insert(std::pair<std::string, std::string>(config.substr(1, start - 1), config.substr(start + 1, end - start)));
+			config = config.substr(end, 0);
+			if(end != std::string::npos)
+				end = config.find('\n', end);
+			else
+				end = config.find('\n', 0);
+		}
+		else {
+			end = config.find('\n', 0);
+			if(end != std::string::npos)
+				_map.insert(std::pair<std::string, std::string>(config.substr(1, start - 1), config.substr(start + 1, end - start - 1)));
+			config = config.substr(end + 1);
+		}
+	}
+	start = config.find('=', 0);
+	end = config.find('\0', 0);
+	if(start != std::string::npos)
+		_map.insert(std::pair<std::string, std::string>(config.substr(1, start - 1), config.substr(start + 1, end - 1)));
+	// for (std::map<std::string, std::string>::iterator i = _map.begin() ; i != _map.end(); i++)
+	// 	std::cout << GREEN << "first: " << RESET << std::left << std::setw(20) << std::setfill(' ') << (*i).first << GREEN << " second: " << RESET << (*i).second << std::endl <<
+	// 	"----------------------------------------------------------------------------------"<< std::endl;
+}
+
+void Configuration::setMethods(){
+	std::string::size_type start;
+	std::string::size_type end = 0;
+
+	while(end < _map["methods"].size()){
+		start = 0;
+		end = _map["methods"].find(' ', 0);
+		if(end != std::string::npos){
+			_methods.push_back(_map["methods"].substr(start, end));
+			_map["methods"] = _map["methods"].substr(end + 1);
+		}
+	}
+	_methods.push_back(_map["methods"].substr(0, _map["methods"].size()));
+}
+
+void Configuration::setConfigsRoute()
+{
+	if(_map.find("routes") == _map.end())
+		return;
+	std::string::size_type start;
+	std::string::size_type end = 0;
+	std::string::size_type i;
+
+	std::string config = _map["routes"];
+	while(end < config.size()){
+		i = 0;
+		while(isspace(config[i]))
+			i++;
 		start = config.find('{', 0);
 		end = config.find('}', 0);
-		while(config[end - 1] != '\n')
-			end = config.find('}', end + 1);
-		if(end != std::string::npos)
-			_map.insert(std::pair<std::string, std::string>(config.substr(start + 2, end - 2), config.substr(end + 2)));
-		config = config.substr(end + 2);
+		if(end != std::string::npos){
+			_configsRoute.insert(std::pair<std::string, ConfigurationRoute>(config.substr(i, start - i - 1), ConfigurationRoute(config.substr(start, end - start), config.substr(i, start - i - 1))));
+			config = config.substr(end + 1);
+		}
 	}
 }
 
@@ -47,11 +105,12 @@ std::string Configuration::GetHost()
 unsigned int Configuration::GetPort()
 {
     std::string hp = GetHostPort();
-    //return hp.substr();
+    return std::atoi(hp.substr(hp.find(':', 0) + 1, hp.size()).c_str());
 }
 
 std::map<std::string, ConfigurationRoute> Configuration::GetConfigsRoute() const
 {
+	return _configsRoute;
 }
 
 std::string Configuration::GetServerName()
@@ -76,7 +135,12 @@ int Configuration::GetRedirectionCode()
 
 std::string Configuration::GetRedirectionUrl()
 {
-    //to see
+    std::string redir = _map["return"];
+	if(redir.empty()){
+		int start = redir.find(' ', 0) + 1;
+		return _map["return"].substr(start, redir.size() - start);
+	}
+	return std::string();
 }
 
 std::string Configuration::GetErrorPath(std::string code) const
@@ -89,4 +153,12 @@ std::string Configuration::GetErrorPath(std::string code) const
 	{
 		return "errors/error_500.html";
 	}
-}	
+}
+
+bool Configuration::isMethod(std::string method){
+	return _methods.end() != std::find(_methods.begin(), _methods.end(), method);
+}
+
+bool Configuration::isEmpty(){
+	return _map.size() == 0;
+}

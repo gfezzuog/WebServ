@@ -9,7 +9,7 @@ class Configuration
     private:
     std::map<std::string, std::string> _map;
     std::vector<std::string> _methods;
-    //std::map<std::string, ConfigurationRoute> _configsRoute; 
+    std::map<std::string, ConfigurationRoute> _configsRoute; 
     void setMap(std::string config);
     void setMethods();
     void setConfigsRoute();
@@ -27,4 +27,6 @@ class Configuration
     int GetRedirectionCode();
     std::string GetRedirectionUrl();
     std::string GetErrorPath(std::string code) const;
+    bool isMethod(std::string method);
+    bool isEmpty();
 };
