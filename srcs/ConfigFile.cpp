@@ -1,6 +1,7 @@
 #include "../incl/WebServer.h"
 
-ConfigFile::ConfigFile(std::string inputfile): _file(inputfile){
+ConfigFile::ConfigFile(const std::string& inputfile) : _file(inputfile.c_str()) 
+{
 	try{
 		std::stringstream buffer;
 		buffer << _file.rdbuf();
@@ -50,7 +51,7 @@ std::vector<std::string> ConfigFile::splitString(std::string content){
     //     char delimiter = '{';
 
     //     std::string component;
-    //     while (std::getline(ss, component, delimiter)) {
+    //     while (std::Getline(ss, component, delimiter)) {
     //         if (!component.empty()) {
     //             dividedComponents.push_back(component);
     //         }
@@ -63,11 +64,25 @@ std::vector<std::string> ConfigFile::splitString(std::string content){
     return (result);
 }
 
-std::map<std::string, std::vector<Configuration>> ConfigFile::getMapConfig(){
+Configuration ConfigFile::GetConfig(std::string hostPort, std::string serverName)
+{
+	std::vector<Configuration>::iterator it = _mapConfigs[hostPort].begin();
+	Configuration defaultConfig;
+	for ( ; it != _mapConfigs[hostPort].end(); it++)
+	{
+		if (it->GetServerName().empty())
+			defaultConfig = *it;
+		if (it->GetServerName() == serverName)
+			return *it;
+	}
+	return defaultConfig;
+}
+
+std::map<std::string, std::vector<Configuration> > ConfigFile::GetMapConfig(){
 	return _mapConfigs;
 }
 
-std::vector<Configuration> ConfigFile::getConfigs()
+std::vector<Configuration> ConfigFile::GetConfigs()
 {
 	return _configs;
 }

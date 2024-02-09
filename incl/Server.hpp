@@ -2,6 +2,13 @@
 
 #include "WebServer.h"
 
+template<typename T>
+std::string to_string(const T & value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
 class Configuration;
 
 class Server
@@ -20,15 +27,17 @@ public:
 
     void connect();
     void disconnect();
-    int getSocketfd() {return _socketfd;}
-    int getPort() {return _port;}
-    std::string getHost() {return _host;}
-    std::string getHostPort()
+    int GetSocketfd() {return _socketfd;}
+    int GetPort() {return _port;}
+    int Getmaxfd() {return _maxfd;}
+    fd_set *GetFDS() {return &_readfds;}
+    std::string GetHost() {return _host;}
+    std::string GetHostPort()
     {
         std::string hostPort = _host;
         hostPort.append(":");
-        return hostPort.append(std::to_string(_port));
+        return hostPort.append(to_string(_port));
     }
-    sockaddr_in* getSocketAddr () {return &_sockAddress;}
+    sockaddr_in* GetSocketAddr () {return &_sockAddress;}
     Configuration GetConfig();
 };

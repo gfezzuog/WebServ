@@ -20,7 +20,7 @@ class Clients
 		Clients();
 		~Clients();
 
-		c_data *get_conn(int fd);
+		c_data *Get_conn(int fd);
 		int conn_add(int fd);
 		int conn_delete(int fd);
 		

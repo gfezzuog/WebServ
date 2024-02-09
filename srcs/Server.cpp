@@ -13,7 +13,7 @@ void Server::connect()
 {
     _socketfd = socket(AF_INET, SOCK_STREAM, 0);
     if(_socketfd == -1)
-        throw OpenSocketException(std::string("Failed to create socket. errno: ").append(std::to_string(errno)));
+        throw OpenSocketException(std::string("Failed to create socket. errno: ").append(to_string(errno)));
     _sockAddress.sin_family = AF_INET;
     if((_sockAddress.sin_addr.s_addr = inet_addr(_host.c_str())) == INADDR_NONE)
         throw OpenSocketException(std::string("Host: ").append(std::string(_host)).append(" is not valid."));
@@ -23,11 +23,11 @@ void Server::connect()
     setsockopt(_socketfd, SOL_SOCKET, MSG_NOSIGNAL, &b, sizeof(int));
     _sockAddress.sin_port =  htons(_port);
     if (bind(_socketfd, (struct sockaddr*) &_sockAddress, sizeof(_sockAddress)) < 0)
-        throw OpenSocketException(std::string("Failed to bind socket. errno: ").append(std::to_string(errno)));
+        throw OpenSocketException(std::string("Failed to bind socket. errno: ").append(to_string(errno)));
     if(listen(_socketfd, 10) < 0)
-        throw OpenSocketException(std::string("Failed to listen on socket. errno: ").append(std::to_string(errno)));
+        throw OpenSocketException(std::string("Failed to listen on socket. errno: ").append(to_string(errno)));
     //EV_SET (&_evSet, _socketfd, EVFILT_READ, EV_ADD, 0, 0, NULL);
-    int n_fds = select(_maxfd + 1, &_readfds, nullptr, nullptr, nullptr);
+    select(_maxfd + 1, &_readfds, NULL, NULL, NULL);
     
     std::cout<< "Connected to host: " << _host << " and port: "<< _port <<std::endl;
 }

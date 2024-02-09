@@ -38,13 +38,13 @@ void RequestHeader::parser(const std::string string, size_t n) {
 		_mapRH.insert(std::make_pair("Body", string.substr(j, n - j)));
 }
 
-std::map<std::string, std::string> RequestHeader::getHeaders() const
+std::map<std::string, std::string> RequestHeader::GetHeaders() const
 {
     return _mapRH;
 }
 
 
-std::string RequestHeader::getMethod() const
+std::string RequestHeader::GetMethod() const
 {
     try{
 		return _mapRH.at("Method").substr(0, _mapRH.at("Method").find(' ', 0));
@@ -54,24 +54,24 @@ std::string RequestHeader::getMethod() const
 	}
 }
 
-std::string RequestHeader::getAccept() const
+std::string RequestHeader::GetAccept() const
 {
     return _mapRH.at("Accept");
 }
 
-std::string RequestHeader::getHost() const
+std::string RequestHeader::GetHost() const
 {
     return _mapRH.at("Host");
 }
 
-std::string RequestHeader::getPath() const
+std::string RequestHeader::GetPath() const
 {
     std::string path = _mapRH.at("Method").substr(_mapRH.at("Method").find(' ', 0) + 1);
     path = path.substr(0, path.find(' ', 0));
     return path;
 }
 
-std::string RequestHeader::getBody() const
+std::string RequestHeader::GetBody() const
 {
     try
     {
@@ -83,7 +83,7 @@ std::string RequestHeader::getBody() const
     }
 }
 
-std::string RequestHeader::getQuaryString() const
+std::string RequestHeader::GetQueryString() const
 {
     std::string path = _mapRH.at("Method").substr(_mapRH.at("Method").find(' ', 0) + 1);
     path = path.substr(0, path.find(' ', 0));

@@ -12,18 +12,20 @@
 
 
 #define MAX_EVENTS 1024
-// #define DEFAUL_ERROR_PATH ""
-// #define PYTHON3PATH ""
-// #define AUTOINDEXPATH ""
+#define DEFAULT_ERROR_PATH "errors/error_500.html"
+#define PYTHON3PATH "/usr/local/bin/python3"
+#define AUTOINDEXPATH "./utils/generate_directory_index.py"
 
 # include <iomanip>
 # include <fcntl.h>
+# include <cstring>
 # include <cstdlib>
 # include <climits>
 # include <ctype.h>
 # include <sys/stat.h>
 # include <sys/socket.h>
 //# include <sys/event.h>
+#include <sys/wait.h>
 # include <arpa/inet.h>
 # include <netinet/in.h>
 # include <unistd.h>
@@ -45,6 +47,11 @@
 # include "ConfigFile.hpp"
 # include "Routes.hpp"
 # include "RequestHeader.hpp"
+# include "ResponseHeader.hpp"
 # include "OpenSocketException.hpp"
+# include "ServerException.hpp"
+
+
+
 
 #endif

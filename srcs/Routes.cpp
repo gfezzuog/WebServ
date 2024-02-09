@@ -45,21 +45,21 @@ std::vector<std::string> ConfigurationRoute::GetCGIPath(){
 	return cgi;
 }
 
-std::string ConfigurationRoute::getUploadPath(){
+std::string ConfigurationRoute::GetUploadPath(){
 	std::string uploadPath = _map["upload_directory"];
 	if (uploadPath.empty())
 		return std::string();
 	return uploadPath;
 }
 
-bool ConfigurationRoute::getAutoIndex(){
+bool ConfigurationRoute::GetAutoIndex(){
 	return _map["autoindex"] == "on";
 }
 
-std::string ConfigurationRoute::getMethod(){
+std::string ConfigurationRoute::GetMethods(){
 	return _map["methods"];
 }
 
-std::string ConfigurationRoute::getIndex(){
+std::string ConfigurationRoute::GetIndex(){
 	return _map["index"];
 }

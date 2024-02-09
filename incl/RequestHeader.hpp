@@ -13,11 +13,11 @@ class RequestHeader
 		RequestHeader(const std::string string, size_t n);
 		~RequestHeader();
 
-		std::map<std::string, std::string> getHeaders() const;
-		std::string getHost() const;
-		std::string getMethod() const;
-		std::string getBody() const;
-		std::string getPath() const;
-		std::string getQuaryString() const;
-		std::string getAccept() const;
+		std::map<std::string, std::string> GetHeaders() const;
+		std::string GetHost() const;
+		std::string GetMethod() const;
+		std::string GetBody() const;
+		std::string GetPath() const;
+		std::string GetQueryString() const;
+		std::string GetAccept() const;
 };

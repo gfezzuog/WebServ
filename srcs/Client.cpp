@@ -7,7 +7,7 @@ Clients::~Clients()
 {}
 
 //la funzione cerca un oggetto c_data nel vettore _clients in base al valore di fd. Se lo trova, restituisce un puntatore a quell'oggetto; altrimenti, restituisce NULL.
-Clients::c_data *Clients::get_conn(int fd)
+Clients::c_data *Clients::Get_conn(int fd)
 {
 	int j = 0;
 	std::vector<c_data>::iterator i = _clients.begin();
@@ -30,12 +30,12 @@ int Clients::conn_add(int fd)
 	return(0);
 }
 
-//questa funzione serve per eliminare una connesione ad un fd fornito come argomento
+//questa funzione serve per eliminare una connessione ad un fd fornito come argomento
 int Clients::conn_delete(int fd)
 {
 	if (fd < 1)
 		return(-1);
-	c_data *cd = get_conn(fd);
+	c_data *cd = Get_conn(fd);
 	if (!cd)
 		return(-1);
 	std::vector<c_data>::iterator i =_clients.begin();

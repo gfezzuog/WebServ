@@ -14,8 +14,8 @@ class ConfigurationRoute{
 		std::string GetPath();
 		std::string GetRoot();
 		std::vector<std::string> GetCGIPath();
-		std::string getUploadPath();
-		bool getAutoIndex();
-		std::string getMethod();
-		std::string getIndex();
+		std::string GetUploadPath();
+		bool GetAutoIndex();
+		std::string GetMethods();
+		std::string GetIndex();
 };
