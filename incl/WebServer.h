@@ -15,6 +15,7 @@
 #define DEFAULT_ERROR_PATH "errors/error_500.html"
 #define PYTHON3PATH "/usr/local/bin/python3"
 #define AUTOINDEXPATH "./utils/generate_directory_index.py"
+#define MAX_BUFFER_SIZE 1024
 
 # include <iomanip>
 # include <fcntl.h>

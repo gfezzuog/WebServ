@@ -19,12 +19,12 @@ private:
     std::string _host;
     sockaddr_in _sockAddress;
     int _maxfd;
-    fd_set _readfds;
     Configuration *_config;
 public:
     Server(unsigned int port, std::string host, Configuration *config);
     ~Server();
 
+    fd_set _readfds;
     void connect();
     void disconnect();
     int GetSocketfd() {return _socketfd;}
@@ -32,12 +32,18 @@ public:
     int Getmaxfd() {return _maxfd;}
     fd_set *GetFDS() {return &_readfds;}
     std::string GetHost() {return _host;}
+    void initialize()
+    {
+        FD_ZERO(&_readfds);
+    }
     std::string GetHostPort()
     {
         std::string hostPort = _host;
         hostPort.append(":");
         return hostPort.append(to_string(_port));
     }
+    fd_set *Getreadfds() {return &_readfds;}
     sockaddr_in* GetSocketAddr () {return &_sockAddress;}
-    Configuration GetConfig();
+    Configuration *GetConfig();
+    Configuration GetConf();
 };

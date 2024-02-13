@@ -241,7 +241,7 @@ ConfigurationRoute ResponseHeader::GetMatchingRoute(std::string path) const
 			return it->second;
 		it++;
 	}
-	std::map<std::string, ConfigurationRoute> tmp = _server->GetConfig().GetConfigsRoute();
+	std::map<std::string, ConfigurationRoute> tmp = _server->GetConf().GetConfigsRoute();
 	if (tmp.find(std::string("/")) == tmp.end())
 	{
 		std::cerr << RED << "Error: Parsing configuration file is gone wrong" << RESET << std::endl;
