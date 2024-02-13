@@ -52,7 +52,7 @@
 # include "OpenSocketException.hpp"
 # include "ServerException.hpp"
 
-
+void printReadFDs(fd_set readfds);
 
 
 #endif

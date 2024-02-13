@@ -1,22 +1,13 @@
 #include "../incl/WebServer.h"
 
 bool run = 1;
+fd_set _readfds;
 
 static void signal_handler(int i)
 {
     if (i == SIGINT)
         run = 0;
 }
-
-// static int findServerByFD(std::vector<Server *> servers, int ident)
-// {
-//     int i = 0;
-//     std::vector<Server *>::iterator it = servers.begin();
-//     for (; it != servers.end(); it++, i++)
-//         if ((**it).GetSocketfd() == ident)
-//             return i;
-//     return -1;
-// }
 
 std::vector<Server *> initServers(std::map<std::string, std::vector<Configuration> > portConfigs)
 {
@@ -28,8 +19,9 @@ std::vector<Server *> initServers(std::map<std::string, std::vector<Configuratio
         Server *s = new Server((*it).second[0].GetPort(), (*it).second[0].GetHost(), &((*it).second[0]));
         try
         {
-            s->initialize(); // Inizializza _readfds per questa istanza di Server
-            s->connect();    // Connessione e aggiunta del socket a _readfds
+            // s->configureServer();
+            s->connect();
+            // FD_SET(s->GetSocketfd(), &_readfds);
         }
         catch (const OpenSocketException &e)
         {
@@ -39,6 +31,16 @@ std::vector<Server *> initServers(std::map<std::string, std::vector<Configuratio
     }
     return servers;
 }
+
+void printReadFDs(fd_set readfds) {
+    std::cout << "File descriptors ready for reading: "<<std::endl;
+    for (int fd = 0; fd < FD_SETSIZE; ++fd) {
+        if (FD_ISSET(fd, &readfds)) {
+            std::cout << fd << " PRONTO"<<std::endl;
+        }
+    }
+    std::cout << std::endl;
+}
 int main(int argc, char *argv[])
 {
     if (argc > 2)
@@ -46,105 +48,107 @@ int main(int argc, char *argv[])
         std::cerr << RED << "Error: Wrong numbers of arguments" << RESET << std::endl;
         return 1;
     }
-
+    FD_ZERO(&_readfds);
     ConfigFile cf(argc == 1 ? "default_config_file.conf" : argv[1]);
     signal(SIGINT, signal_handler);
     execAutoindex();
 
     std::vector<Server *> servers = initServers(cf.GetMapConfig());
-    std::cout<<"Servers created"<<std::endl;
-
+    std::cout << "Servers created" << std::endl;
+    printReadFDs(_readfds);
     Clients clients;
 
     while (run)
     {
-        std::cout<<"run begin"<<std::endl;
-        fd_set readfds = {}; // Inizializza il set dei descrittori di file per la lettura
+        std::cout << "run begin" << std::endl;
         int maxfd = -1;
-
-        // Aggiunge tutti i socket al set readfds e tiene traccia del massimo fd
         for (size_t i = 0; i < servers.size(); ++i)
         {
             int sockfd = servers[i]->GetSocketfd();
+            std::cout << sockfd << " il file descriptor è questo" << std::endl;
             if (sockfd > maxfd)
                 maxfd = sockfd;
         }
-        std::cout<<"max fd done"<<std::endl;
-        // Copia _readfds di ogni server in readfds
+        std::cout << "max fd done " << maxfd << std::endl;
         for (size_t i = 0; i < servers.size(); ++i)
         {
-            FD_SET(servers[i]->GetSocketfd(), &servers[i]->_readfds);
+            FD_SET(servers[i]->GetSocketfd(), &_readfds);
+            if (FD_ISSET(servers[i]->GetSocketfd(), &_readfds))
+                std::cout << "FD_SET DONE " << i << std::endl;
+            else
+                std::cout << "error???????" << std::endl;
         }
-        std::cout<<"FD_SET DONE"<<std::endl;
-        // Attende gli eventi di lettura sui socket utilizzando select
         struct timeval time;
-        time.tv_sec = 5; // Timeout di 5 secondi
+        time.tv_sec = 6; // Timeout di 5 secondi
         time.tv_usec = 0;
 
-        int num_ready = select(maxfd + 1, &readfds, NULL, NULL, &time);
-        std::cout<<"select return = "<< num_ready <<std::endl;
-        
+        int num_ready = select(maxfd + 1, &_readfds, NULL, NULL, &time);
+        std::cout << "select return = " << num_ready << std::endl;
+
         if (num_ready > 0)
         {
-            // Gestisce gli eventi pronti sui socket
             for (size_t i = 0; i < servers.size(); ++i)
             {
                 int sockfd = servers[i]->GetSocketfd(); // Ottieni il descrittore di file del socket
-
-                // Verifica se il socket è pronto per la lettura
-                if (FD_ISSET(sockfd, &servers[i]->_readfds))
+                for (size_t i = 0; i < servers.size(); ++i)
+                {
+                    FD_SET(servers[i]->GetSocketfd(), &_readfds);
+                }
+                if (FD_ISSET(sockfd, &_readfds))
                 {
                     // Leggi dati dal socket
                     char buffer[MAX_BUFFER_SIZE];
                     ssize_t bytes_read = recv(sockfd, buffer, MAX_BUFFER_SIZE, 0);
-                    std::cout<<bytes_read<<std::endl;
+                    std::cout << "recv value "<< bytes_read << std::endl;
                     if (bytes_read < 0)
                     {
-                        // Gestione degli errori durante la lettura dal socket
-                        // Ad esempio, potresti chiudere il socket e rimuoverlo da _readfds
                         servers[i]->disconnect();
                         continue;
                     }
                     else if (bytes_read == 0)
                     {
-                        // Connessione chiusa dal client
-                        // Puoi chiudere il socket e rimuoverlo da _readfds
                         servers[i]->disconnect();
                         continue;
                     }
 
-                    // Creazione dell'oggetto RequestHeader utilizzando i dati ricevuti dal socket
                     RequestHeader reqHeader(buffer, bytes_read);
-                    // Creazione dell'oggetto ResponseHeader utilizzando RequestHeader e il server corrente
                     ResponseHeader resHeader(servers[i], &reqHeader, servers[i]->GetConfig()); // Dove configurationPointer è un puntatore alla configurazione del server
 
-                    // Generazione della risposta
                     std::string response = resHeader.makeResponse(200); // Esempio: codice di risposta 200
 
-                    // Invia la risposta al client
                     ssize_t bytes_sent = send(sockfd, response.c_str(), response.length(), 0);
                     if (bytes_sent < 0)
                     {
-                        // Gestione degli errori durante l'invio della risposta al client
-                        // Ad esempio, potresti chiudere il socket e rimuoverlo da _readfds
                         servers[i]->disconnect();
                     }
                 }
-                else if (num_ready == 0)
-                {
-                    // Nessun evento pronto, continua l'attesa
-                    continue;
-                }
                 else
                 {
-                    // Errore nella chiamata a select, gestisci l'errore
-                    std::cerr << "Error in select" << std::endl;
-                    break;
+                    std::cout << "error from fdisset" << std::endl;
                 }
             }
         }
+        else if (num_ready == 0)
+        {
+            for(size_t inp=0; inp<servers.size(); ++inp)
+            {
+                char a[1024];
+                int o = recv(servers[inp]->GetSocketfd(), a, sizeof(a), 0);
+                if(o > 0)
+                    std::cout<<"correct"<<std::endl;
+                else if(o == 0)
+                    std::cout<<"how???"<<std::endl;
+                else
+                    std::cout<<"error"<<std::endl;
+            }
+            continue;
+        }
+        else
+        {
+            std::cerr << "Error in select" << std::endl;
+            break;
+        }
         std::cout << RED << "EXIT" << RESET << std::endl;
-        // Chiudi i socket e dealloca le risorse
         for (size_t i = 0; i < servers.size(); ++i)
         {
             servers[i]->disconnect();
@@ -154,152 +158,4 @@ int main(int argc, char *argv[])
 
         return 0;
     }
-}    // int main(int argc, char *argv[])
-    // {
-    // 	if (argc > 2)
-    // 	{
-    // 		std::cerr << RED << "Error: Wrong numbers of arguments" << RESET << std::endl;
-    // 		return 1;
-    // 	}
-    // 	ConfigFile cf(argv[1]);
-    // 	signal(SIGINT, signal_handler);
-    // 	execAutoindex();
-
-    // 	std::vector<Server *> servers = initServers(cf.GetMapConfig());
-
-    // 	Clients clients;
-
-    // 	// kevent evList[MAX_EVENTS];
-
-    // 	while (run)
-    // 	{
-    // 		std::string bufferStr;
-    // 		// num_events = kevent(kQueue, NULL, 0, evList, MAX_EVENTS, NULL);
-    // 		//std::vector<Server *>::iterator it = servers.begin();
-    // 		for (int i = 0; i < servers[i]->Getmaxfd(); i++)
-    // 		{
-    // 			int index = findServerByFD(servers, servers[i]->GetSocketfd());
-    // 			if (index != -1)
-    // 			{
-    // 				ssize_t addrlen = sizeof(sockaddr);
-    // 				int connection = accept(servers[i]->GetSocketfd(), (struct sockaddr *)(*servers[index]).GetSocketAddr(), (socklen_t *)&addrlen);
-    // 				try
-    // 				{
-    // 					if (clients.conn_add(connection))
-    // 					{
-    // 						ResponseHeader resHeader(NULL, std::make_pair("500", DEFAULT_ERROR_PATH));
-    // 						throw ServerException("500", resHeader.makeResponse(500), connection);
-    // 					}
-    // 					else
-    // 					{
-    // 						select(servers[i]->GetSocketfd(), servers[i]->GetFDS(), NULL, NULL, NULL);
-    // 						// EV_SET((*servers[index]).GetEvSet(), connection, EVFILT_READ, EV_ADD, 0, 0, NULL);
-    // 						// kevent(kQueue, (*servers[index]).GetEvSet(), 1, NULL, 0, NULL);
-    // 					}
-    // 				}
-    // 				catch (const ServerException &e)
-    // 				{
-    // 					e.what();
-    // 				}
-    // 			}
-    // 			else //  if (evList[i].filter == EVFILT_READ)
-    // 			{
-    // 				Configuration config;
-    // 				char buffer[8192];
-    // 				index = findServerByFD(servers, servers[i]->GetSocketfd());
-    // 				size_t totalBytesRead = 0;
-    // 				int bytesRead = 0;
-    // 				do
-    // 				{
-    // 					bytesRead = recv(servers[i]->GetSocketfd(), buffer, 8192, 0);
-    // 					totalBytesRead += bytesRead;
-    // 					if (bytesRead > 0)
-    // 						bufferStr.append(buffer, bytesRead);
-    // 					usleep(100);
-    // 				} while (bytesRead > 0);
-    // 				// print header request
-    // 				// for (size_t i = 0; i < totalBytesRead + 1; i++)
-    // 				// 	std::cout << bufferStr[i];
-    // 				RequestHeader reqHeader = RequestHeader(bufferStr, totalBytesRead + 1);
-    // 				try
-    // 				{
-    // 					config = cf.GetConfig((*servers[index]).GetHostPort(), reqHeader.GetHost());
-    // 					if (config.isEmpty())
-    // 						throw std::exception();
-    // 				}
-    // 				catch (const std::out_of_range &e)
-    // 				{
-    // 					continue;
-    // 				}
-    // 				catch (const std::exception &e)
-    // 				{
-    // 					std::cout << RED << "Error: no vaiable configuration" << RESET << std::endl;
-    // 					continue;
-    // 				}
-    // 				ResponseHeader resHeader = ResponseHeader(servers[index], &reqHeader, &config);
-    // 				std::string resp;
-    // 				try
-    // 				{
-    // 					if (reqHeader.GetMethod() == "POST" && reqHeader.GetBody().length() > config.GetLimitSizeBody())
-    // 					{
-    // 						resHeader = ResponseHeader(NULL, std::make_pair("413", config.GetErrorPath("413")));
-    // 						throw ServerException(resHeader.GetError().first,
-    // 							resHeader.makeResponse(std::atoi(resHeader.GetError().first.c_str())),
-    // 							servers[i]->GetSocketfd());
-    // 					}
-    // 					else
-    // 					{
-    // 						if (!config.GetRedirectionCode())
-    // 							resp.append(resHeader.makeResponse(200));
-    // 						else
-    // 						{
-    // 							resp.append(resHeader.makeResponse(config.GetRedirectionCode()));
-    // 							std::string redir("Location: ");
-    // 							redir.append(config.GetRedirectionUrl());
-    // 							redir.append("\r\n");
-    // 							resp.insert(resp.find('\n') + 1, redir);
-    // 						}
-    // 						if (!resHeader.GetError().first.empty())
-    // 						{
-    // 							resHeader = ResponseHeader(NULL, resHeader.GetError());
-    // 							throw ServerException(resHeader.GetError().first,
-    // 								resHeader.makeResponse(std::atoi(resHeader.GetError().first.c_str())),
-    // 								servers[i]->GetSocketfd());
-    // 						}
-    // 					}
-    // 				}
-    // 				catch (const ServerException &e)
-    // 				{
-    // 					resp = e.what();
-    // 				}
-    // 				std::string respChunck;
-    // 				int dataSent = 0;
-    // 				do
-    // 				{
-    // 					respChunck = resp.substr(0, 35000);
-    // 					dataSent = send(servers[i]->GetSocketfd(), respChunck.c_str(), respChunck.size(), 0);
-    // 					if (dataSent < 0)
-    // 						break;
-    // 					resp = resp.substr(dataSent);
-    // 				} while (resp.size());
-    // 				bufferStr.clear();
-    // 				index = findServerByFD(servers, servers[i]->GetSocketfd());
-    // 				select(servers[i]->GetSocketfd(), servers[i]->GetFDS(), NULL, NULL, NULL);
-    // 				// EV_SET((*servers[index]).GetEvSet(), evList[i].ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-    // 				// kevent(kQueue, (*servers[index]).GetEvSet(), 1, NULL, 0, NULL);
-    // 				clients.conn_delete(servers[i]->GetSocketfd());
-    // 				usleep(100);
-    // 			}
-    // 		}
-    // 	}
-
-    // 	std::cout << RED << "EXIT" << RESET << std::endl;
-    // 	// close(kQueue);
-    // 	std::vector<Server *>::iterator i = servers.begin();
-    // 	for (; i != servers.end(); i++)
-    // 	{
-    // 		(*i)->disconnect();
-    // 		delete (*i);
-    // 	}
-    // 	return 0;
-    // }
+}

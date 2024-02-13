@@ -17,7 +17,7 @@ private:
     int _port;
     int _socketfd;
     std::string _host;
-    sockaddr_in _sockAddress;
+    struct sockaddr_in _sockAddress;
     int _maxfd;
     Configuration *_config;
 public:
@@ -32,10 +32,6 @@ public:
     int Getmaxfd() {return _maxfd;}
     fd_set *GetFDS() {return &_readfds;}
     std::string GetHost() {return _host;}
-    void initialize()
-    {
-        FD_ZERO(&_readfds);
-    }
     std::string GetHostPort()
     {
         std::string hostPort = _host;
@@ -44,6 +40,7 @@ public:
     }
     fd_set *Getreadfds() {return &_readfds;}
     sockaddr_in* GetSocketAddr () {return &_sockAddress;}
+    int configureServer();
     Configuration *GetConfig();
     Configuration GetConf();
 };
