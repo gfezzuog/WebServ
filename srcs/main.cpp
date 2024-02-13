@@ -52,11 +52,13 @@ int main(int argc, char *argv[])
     execAutoindex();
 
     std::vector<Server *> servers = initServers(cf.GetMapConfig());
+    std::cout<<"Servers created"<<std::endl;
 
     Clients clients;
 
     while (run)
     {
+        std::cout<<"run begin"<<std::endl;
         fd_set readfds = {}; // Inizializza il set dei descrittori di file per la lettura
         int maxfd = -1;
 
@@ -67,15 +69,21 @@ int main(int argc, char *argv[])
             if (sockfd > maxfd)
                 maxfd = sockfd;
         }
-
+        std::cout<<"max fd done"<<std::endl;
         // Copia _readfds di ogni server in readfds
         for (size_t i = 0; i < servers.size(); ++i)
         {
             FD_SET(servers[i]->GetSocketfd(), &servers[i]->_readfds);
         }
-
+        std::cout<<"FD_SET DONE"<<std::endl;
         // Attende gli eventi di lettura sui socket utilizzando select
-        int num_ready = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+        struct timeval time;
+        time.tv_sec = 5; // Timeout di 5 secondi
+        time.tv_usec = 0;
+
+        int num_ready = select(maxfd + 1, &readfds, NULL, NULL, &time);
+        std::cout<<"select return = "<< num_ready <<std::endl;
+        
         if (num_ready > 0)
         {
             // Gestisce gli eventi pronti sui socket
@@ -89,6 +97,7 @@ int main(int argc, char *argv[])
                     // Leggi dati dal socket
                     char buffer[MAX_BUFFER_SIZE];
                     ssize_t bytes_read = recv(sockfd, buffer, MAX_BUFFER_SIZE, 0);
+                    std::cout<<bytes_read<<std::endl;
                     if (bytes_read < 0)
                     {
                         // Gestione degli errori durante la lettura dal socket
