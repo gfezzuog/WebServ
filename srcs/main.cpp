@@ -78,11 +78,8 @@ int main(int argc, char *argv[])
 			else
 				std::cout << "error???????" << std::endl;
 		}
-		struct timeval time;
-		time.tv_sec = 6; // Timeout di 5 secondi
-		time.tv_usec = 0;
 
-		int num_ready = select(maxfd + 1, &_readfds, NULL, NULL, &time);
+		int num_ready = select(maxfd + 1, &_readfds, NULL, NULL, NULL);
 		std::cout << "select return = " << num_ready << std::endl;
 
 		if (num_ready > 0)
@@ -113,6 +110,48 @@ int main(int argc, char *argv[])
 							else
 							{
 								FD_SET(connection, &_readfds);
+
+								// Leggi i dati inviati dal client
+								char buffer[MAX_BUFFER_SIZE];
+								ssize_t bytes_read = recv(connection, buffer, MAX_BUFFER_SIZE, 0);
+								std::cout << "buffer: " << buffer << "read: " << bytes_read << std::endl; 
+								if (bytes_read <= 0)
+								{
+									// Gestisci errore o connessione chiusa dal client
+									std::cerr << "Error reading request from client." << std::endl;
+									close(connection);
+									FD_CLR(connection, &_readfds);
+									continue;
+								}
+								RequestHeader reqHeader(buffer, bytes_read);
+
+								// Ora puoi utilizzare le informazioni sulla richiesta per elaborarla
+								Configuration *banani = servers[i]->GetConfig();
+								if(banani == NULL)
+								{
+									std::cout<<"banani di merda"<<std::endl;
+									return(1);
+								}
+								std::cout << "Request method: " << reqHeader.GetMethod() << std::endl;
+								std::cout << "Request URL: " << reqHeader.GetPath() << std::endl;
+								ResponseHeader resHeader(servers[i], &reqHeader, banani);
+								std::string response;
+								std::cout << "BANANI"<<std::endl;
+								if(reqHeader.GetMethod() == "GET")
+								{
+									response = resHeader.makeResponse(200);
+									std::cout<<"request is GET"<<std::endl;
+								}
+								else
+								{
+									response = resHeader.makeResponse(405);
+									std::cout<<"response 405"<<std::endl;
+								}
+								std::cout << "everything done tipe so send byte"<<std::endl;
+								ssize_t byte_sent = send(connection, response.c_str(), response.length(), 0);
+								std::cout <<"data sent"<<std::endl;
+								if (byte_sent < 0)
+									std::cerr << "madonna laida"<<std::endl;
 							}
 						}
 					}

@@ -8,7 +8,7 @@ Server::~Server() {}
 void Server::connect() {
     _socketfd = socket(AF_INET, SOCK_STREAM, 0);
     if (_socketfd == -1) {
-        throw OpenSocketException(std::string("Failed to create socket. errno: ").append(std::to_string(errno)));
+        throw OpenSocketException(std::string("Failed to create socket. errno: ").append(to_string(errno)));
     }
     _sockAddress.sin_family = AF_INET;
     if ((_sockAddress.sin_addr.s_addr = inet_addr(_host.c_str())) == INADDR_NONE) {
@@ -18,10 +18,10 @@ void Server::connect() {
     setsockopt(_socketfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
     _sockAddress.sin_port = htons(_port);
     if (bind(_socketfd, (struct sockaddr*)&_sockAddress, sizeof(_sockAddress)) < 0) {
-        throw OpenSocketException(std::string("Failed to bind port ").append(std::to_string(_port)).append(". errno: ").append(std::to_string(errno)));
+        throw OpenSocketException(std::string("Failed to bind port ").append(to_string(_port)).append(". errno: ").append(to_string(errno)));
     }
     if (listen(_socketfd, 10) < 0) {
-        throw OpenSocketException(std::string("Failed to listen on socket. errno: ").append(std::to_string(errno)));
+        throw OpenSocketException(std::string("Failed to listen on socket. errno: ").append(to_string(errno)));
     }
     FD_SET(_socketfd, &_readfds);
     // printReadFDs(_readfds);

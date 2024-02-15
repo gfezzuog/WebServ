@@ -18,13 +18,9 @@ ResponseHeader::ResponseHeader(Server *server, RequestHeader *request, Configura
 	: _server(server), _request(request), _config(config)
 {
 	setCodeMap();
-    std::cout<<"111111111111111111"<<std::endl;
 	setPath();
-    std::cout<<"22222222222222222222"<<std::endl;
 	setContent();
-    std::cout<<"333333333333333333333"<<std::endl;
 	setContentType(_path);
-    std::cout<<"Response header created"<<std::endl;
 }
 
 ResponseHeader::ResponseHeader(RequestHeader *request, std::pair<std::string, std::string> error)
@@ -47,13 +43,13 @@ std::string ResponseHeader::makeResponse(int code) const
 	{
 		response.append(to_string(204));
 		response.append(" ");
-		response.append(getResponseCode(204));
+		response.append(GetResponseCode(204));
 	}
 	else
 	{
 		response.append(to_string(code));
 		response.append(" ");
-		response.append(getResponseCode(code));
+		response.append(GetResponseCode(code));
 	}
 	response.append("\r\n");
 	response.append("content-type: ");
@@ -62,7 +58,7 @@ std::string ResponseHeader::makeResponse(int code) const
 	response.append("content-length: ");
 	response.append(to_string(_contentLenght));
 	response.append("\r\n");
-	response.append(getDate());
+	response.append(GetDate());
 	response.append("\r\n");
 	response.append(_content);
 	return response;
@@ -85,9 +81,8 @@ void ResponseHeader::setCodeMap()
 
 void ResponseHeader::setPath()
 {
-	// std::cout<<"polpette al sugo"<<std::endl;
 	std::string path = _request->GetPath();
-	ConfigurationRoute route = getMatchingRoute(path);
+	ConfigurationRoute route = GetMatchingRoute(path);
 
 	if (route.GetMethods().rfind(_request->GetMethod()) == std::string::npos)
 		_error = std::make_pair("405", _config->GetErrorPath("405"));
@@ -97,7 +92,7 @@ void ResponseHeader::setPath()
 		_path = route.GetRoot().append("/" + path.substr(temp, path.size() - temp));
 	else
 		_path = path;
-	ConfigurationRoute newRoute = getMatchingRoute(_path);
+	ConfigurationRoute newRoute = GetMatchingRoute(_path);
 	if (newRoute.GetMethods().rfind(_request->GetMethod()) == std::string::npos)
 		_error = std::make_pair("405", _config->GetErrorPath("405"));
 	if (_path[0] == '/')
@@ -153,7 +148,7 @@ void ResponseHeader::setContent()
 		}
 		else if (_error.first.empty() && (type == ".php" || type == ".py"))
 		{
-			ConfigurationRoute route = getMatchingRoute(_request->GetPath());
+			ConfigurationRoute route = GetMatchingRoute(_request->GetPath());
 			if (route.GetCGIPath()[0] == type)
 			{
 				setEnv();
@@ -193,7 +188,7 @@ void ResponseHeader::setContentType(std::string path, std::string type)
 {
 	ConfigurationRoute route;
 	if (_request)
-		route = getMatchingRoute(_request->GetPath());
+		route = GetMatchingRoute(_request->GetPath());
 
 	if (type != "")
 	{
@@ -217,16 +212,16 @@ void ResponseHeader::setContentType(std::string path, std::string type)
 		_contentType = "image/bmp";
 	else
 		_contentType = "text/plain";
-	// if (getError().first.empty() && _request->getAccept().rfind(_contentType, 0) == std::string::npos)
+	// if (GetError().first.empty() && _request->GetAccept().rfind(_contentType, 0) == std::string::npos)
 	// 		_error = std::make_pair("406", _config.GetErrorPath("406"));
 }
 
-std::string ResponseHeader::getResponseCode(int code) const
+std::string ResponseHeader::GetResponseCode(int code) const
 {
 	return _codeMap.at(code);
 }
 
-std::string ResponseHeader::getDate() const
+std::string ResponseHeader::GetDate() const
 {
 	std::string date = "date: ";
 	time_t t = std::time(NULL);
@@ -237,7 +232,7 @@ std::string ResponseHeader::getDate() const
 	return date;
 }
 
-ConfigurationRoute ResponseHeader::getMatchingRoute(std::string path) const
+ConfigurationRoute ResponseHeader::GetMatchingRoute(std::string path) const
 {
 	std::map<std::string, ConfigurationRoute> configRoute = _config->GetConfigsRoute();
 	std::map<std::string, ConfigurationRoute>::reverse_iterator it = configRoute.rbegin();
@@ -255,7 +250,7 @@ ConfigurationRoute ResponseHeader::getMatchingRoute(std::string path) const
 	return tmp.find(std::string("/"))->second;
 }
 
-std::pair<std::string, std::string> ResponseHeader::getError() const
+std::pair<std::string, std::string> ResponseHeader::GetError() const
 {
 	return _error;
 }
@@ -281,7 +276,7 @@ void ResponseHeader::setEnv() {
 	this->_env["REMOTE_IDENT"] = headers["Authorization"];
 	this->_env["REMOTE_USER"] = headers["Authorization"];
 	this->_env["REQUEST_URI"] = _path + _request->GetQueryString();
-	this->_env["UPLOAD_PATH"] = std::string(cwd) + getMatchingRoute(_request->GetPath()).GetUploadPath();
+	this->_env["UPLOAD_PATH"] = std::string(cwd) + GetMatchingRoute(_request->GetPath()).GetUploadPath();
 	if (headers.find("Hostname") != headers.end())
 		this->_env["SERVER_NAME"] = headers["Hostname"];
 	else
@@ -292,7 +287,7 @@ void ResponseHeader::setEnv() {
 	this->_env["HTTP_COOKIE"] = headers["Cookie"];
 }
 
-char **ResponseHeader::getEnvAsCstrArray() const {
+char **ResponseHeader::GetEnvAsCstrArray() const {
 	char	**env = new char*[this->_env.size() + 1];
 	int	j = 0;
 	for (std::map<std::string, std::string>::const_iterator i = this->_env.begin(); i != this->_env.end(); i++) {
@@ -313,7 +308,7 @@ std::string ResponseHeader::executeCgi(const std::vector<std::string>& cgiPar) {
 	std::string	newBody;
 
 	try {
-		env = this->getEnvAsCstrArray();
+		env = this->GetEnvAsCstrArray();
 	}
 	catch (std::bad_alloc &e) {
 		std::cerr << RED << e.what() << RESET << std::endl;

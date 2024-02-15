@@ -1,7 +1,7 @@
-#ifndef RESPONSE_HEADER_HPP
-# define RESPONSE_HEADER_HPP
+#pragma once
 
 # include "WebServer.h"
+
 
 int execAutoindex();
 
@@ -27,19 +27,17 @@ class ResponseHeader
 		void setContent();
 		void setContentType(std::string path, std::string type = "");
 		void setEnv();
-		char **getEnvAsCstrArray() const;
+		char **GetEnvAsCstrArray() const;
 		std::string executeCgi(const std::vector<std::string>& cgiPas);
-		ConfigurationRoute getMatchingRoute(std::string path) const;
+		ConfigurationRoute GetMatchingRoute(std::string path) const;
 
 	public:
 		ResponseHeader(Server *server, RequestHeader *request, Configuration *config);
 		ResponseHeader(RequestHeader *request, std::pair<std::string, std::string> error = std::make_pair("500", DEFAULT_ERROR_PATH));
 		~ResponseHeader();
 		std::string makeResponse(int code) const;
-		std::string getResponseCode(int code) const;
-		std::string getContentType() const;
-		std::string getDate() const;
-		std::pair<std::string, std::string> getError() const;
+		std::string GetResponseCode(int code) const;
+		std::string GetContentType() const;
+		std::string GetDate() const;
+		std::pair<std::string, std::string> GetError() const;
 };
-
-#endif
