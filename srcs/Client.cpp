@@ -27,6 +27,8 @@ int Clients::conn_add(int fd)
 	assert(flags >= 0); //è una funzione che controlla la veridicitá dell'espressione, se falsa stampa un messaggio di errore
 	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 	_clients.push_back(c_data(fd));
+	std::cout<<"****************************************************************"<<std::endl;
+	std::cout<< "conn_add: " << fd << std::endl;
 	return(0);
 }
 

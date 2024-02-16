@@ -2,7 +2,7 @@ NAME	=	WebServ
 
 CC		=	g++
 
-FLAGS	=	-std=c++98 -Wall -Wextra -Werror -g
+FLAGS	=	-std=c++11 -Wall -Wextra -Werror -g
 
 RM		=	rm -rf
 

@@ -64,12 +64,16 @@ std::string RequestHeader::GetHost() const
     return _mapRH.at("Host");
 }
 
-std::string RequestHeader::GetPath() const
-{
-    std::string path = _mapRH.at("Method").substr(_mapRH.at("Method").find(' ', 0) + 1);
-    path = path.substr(0, path.find(' ', 0));
-    return path;
+std::string RequestHeader::GetPath() const {
+	size_t temp = _mapRH.at("Method").find(' ', 0) + 1;
+	std::string fullPath = _mapRH.at("Method").substr(temp, _mapRH.at("Method").find(' ', temp + 1) - temp);
+	temp = fullPath.find('?', 0);
+	if (temp == std::string::npos)
+		return fullPath;
+	else
+		return fullPath.substr(0, temp);
 }
+
 
 std::string RequestHeader::GetBody() const
 {

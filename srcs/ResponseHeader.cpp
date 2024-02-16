@@ -87,45 +87,86 @@ void ResponseHeader::setPath()
 {
 	// std::cout<<"polpette al sugo"<<std::endl;
 	std::string path = _request->GetPath();
+	std::cout<<path<<" thats the value from _request get path"<<std::endl;
 	ConfigurationRoute route = getMatchingRoute(path);
-
 	if (route.GetMethods().rfind(_request->GetMethod()) == std::string::npos)
+	{
+		std::cout<< "BEFORE Error 405"<<std::endl;
 		_error = std::make_pair("405", _config->GetErrorPath("405"));
+		std::cout<< "Error 405"<<std::endl;
+	}
 	std::string::size_type temp = path.rfind(route.GetPath(), 0);
-	if (temp == 0) temp = route.GetPath().length();
+	std::cout<<"BEFORE First If"<<std::endl;
+	if (temp == 0)
+	{
+		temp = route.GetPath().length();
+		std::cout<<"First If"<<std::endl;
+	}
+	std::cout<<"BEFORE second If"<<std::endl;
 	if (!route.GetRoot().empty())
+	{
 		_path = route.GetRoot().append("/" + path.substr(temp, path.size() - temp));
+		std::cout<<"Second If"<<std::endl;
+	}
 	else
+	{
+		std::cout<<"Else second if"<<std::endl;
 		_path = path;
+		std::cout<<path<<"  "<<_path<<std::endl;
+	}
 	ConfigurationRoute newRoute = getMatchingRoute(_path);
+	std::cout<<"BEFORE third If"<<std::endl;
 	if (newRoute.GetMethods().rfind(_request->GetMethod()) == std::string::npos)
+	{
+		std::cout<<"third If"<<std::endl;
 		_error = std::make_pair("405", _config->GetErrorPath("405"));
+	}
+	std::cout<<"BEFORE fourth If"<<std::endl;
 	if (_path[0] == '/')
+	{
+		std::cout<<"fourth If"<<std::endl;
 		_path = _path.substr(1, _path.size() - 1);
+		std::cout<<_path<<std::endl;
+	}
+	std::cout<<"BEFORE fifth If"<<std::endl;
 	if (_path[_path.size() - 1] == '/')
+	{
+		std::cout<<"fifth If"<<std::endl;
 		_path = _path.substr(0, _path.size() - 1);
+		std::cout<<_path<<std::endl;
+	}
+	std::cout<<"BEFORE sixth If"<<std::endl;
 	if (!newRoute.GetIndex().empty() && _path == newRoute.GetPath().substr(1, _path.size()))
+	{
+		std::cout<<"Sixth If"<<std::endl;
 		_path.append(newRoute.GetIndex());
+	}
+	std::cout<<"BEFORE seventh If"<<std::endl;
 	if (((newRoute.GetRoot().size() == 0 && newRoute.GetPath().size() > 0
 		&& _path == newRoute.GetPath().substr(1, _path.size()))
 		|| (route.GetRoot().size() > 0
 		&& _path == route.GetRoot().substr(1, _path.size())))
 		&& route.GetAutoIndex())
 	{
+		std::cout<<"Seventh If"<<std::endl;
 		std::ifstream f(_path.c_str());
 		struct stat s;
 		stat(_path.c_str(), &s);
 		if (f.fail() || s.st_mode & S_IFDIR)
 		{
+			std::cout<<"Seventh If FAIL"<<std::endl;
 			execAutoindex();
 			if (_path.size() == 0)
 				_path = ".";
 			_path.append("/.index.html");
 		}
 		else
+		{
+			std::cout<<"Seventh If internal else"<<std::endl;
 			f.close();
+		}
 	}
-	// std::cout << _path << std::endl;
+	std::cout << _path << std::endl;
 }
 
 void ResponseHeader::setContent()
@@ -237,21 +278,36 @@ std::string ResponseHeader::getDate() const
 	return date;
 }
 
+// void printMap(std::map<std::string, std::string> & map) {
+//     for (const auto& pair : map) {
+//         std::cout << pair.first << " : " << pair.second << std::endl;
+//     }
+// }
+
 ConfigurationRoute ResponseHeader::getMatchingRoute(std::string path) const
 {
 	std::map<std::string, ConfigurationRoute> configRoute = _config->GetConfigsRoute();
 	std::map<std::string, ConfigurationRoute>::reverse_iterator it = configRoute.rbegin();
+	for(auto i : configRoute)
+	{
+		std::cout<<i.first<<std::endl;
+	}
 	while (it != configRoute.rend()) {
 		if (path.rfind(it->first, 0) == 0)
 			return it->second;
 		it++;
 	}
+	std::cout<<"AFTER while getMatchingRoute"<<std::endl;
+	
 	std::map<std::string, ConfigurationRoute> tmp = _server->GetConf().GetConfigsRoute();
+	std::cout<<"tmp created"<<std::endl;
 	if (tmp.find(std::string("/")) == tmp.end())
 	{
+		std::cout<<"Inside if string /"<<std::endl;
 		std::cerr << RED << "Error: Parsing configuration file is gone wrong" << RESET << std::endl;
 		exit(1);
 	}
+	std::cout<<"BEFORE RETURN getMatchingRoute"<<std::endl;
 	return tmp.find(std::string("/"))->second;
 }
 

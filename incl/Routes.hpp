@@ -18,4 +18,26 @@ class ConfigurationRoute{
 		bool GetAutoIndex();
 		std::string GetMethods();
 		std::string GetIndex();
+		void printConfigurationroute() {
+			 std::cout << "Configuration Route Details:" << std::endl;
+		std::cout << "Path: " << _path << std::endl;
+
+		std::cout << "Map:" << std::endl;
+		for (const auto& pair : _map) {
+				std::cout << pair.first << " : " << pair.second << std::endl;
+		}
+			
+		std::cout << "Root: " << GetRoot() << std::endl;
+		std::cout << "CGI Paths:" << std::endl;
+		for (const auto& cgiPath : GetCGIPath()) {
+				std::cout << cgiPath << std::endl;
+		}
+
+		std::cout << "Upload Path: " << GetUploadPath() << std::endl;
+		std::cout << "AutoIndex: " << (GetAutoIndex() ? "Enabled" : "Disabled") << std::endl;
+		std::cout << "Allowed Methods: " << GetMethods() << std::endl;
+		std::cout << "Index: " << GetIndex() << std::endl;
+
+		std::cout << "End of Configuration Route" << std::endl;
+	}
 };

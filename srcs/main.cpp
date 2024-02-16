@@ -9,6 +9,16 @@ static void signal_handler(int i)
 		run = 0;
 }
 
+static int findServerByFD(std::vector<Server *> servers, int ident)
+{
+	int i = 0;
+	std::vector<Server *>::iterator it = servers.begin();
+	for (; it != servers.end(); it++, i++)
+		if ((**it).GetSocketfd() == ident)
+			return i;
+	return -1;
+}
+
 std::vector<Server *> initServers(std::map<std::string, std::vector<Configuration> > portConfigs)
 {
 	std::map<std::string, std::vector<Configuration> >::iterator it = portConfigs.begin();
@@ -94,6 +104,7 @@ int main(int argc, char *argv[])
 						struct sockaddr_in clientAddr;
 						socklen_t clientAddrLen = sizeof(clientAddr);
 						int connection = accept(sockfd, (struct sockaddr *)&clientAddr, &clientAddrLen);
+						std::cout<< "connection = " << connection << std::endl;
 						if (connection < 0)
 						{
 							std::cerr << "Failed to accept connection. errno: " << errno << std::endl;
@@ -101,7 +112,6 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							std::cout << "Accepted new connection" << std::endl;
 							if (clients.conn_add(sockfd))
 							{
 								ResponseHeader resHeader(NULL, std::make_pair("500", DEFAULT_ERROR_PATH));
@@ -114,42 +124,48 @@ int main(int argc, char *argv[])
 								// Leggi i dati inviati dal client
 								char buffer[MAX_BUFFER_SIZE];
 								ssize_t bytes_read = recv(connection, buffer, MAX_BUFFER_SIZE, 0);
-								std::cout << "buffer: " << buffer << "read: " << bytes_read << std::endl; 
 								if (bytes_read <= 0)
 								{
 									// Gestisci errore o connessione chiusa dal client
-									std::cerr << "Error reading request from client." << std::endl;
 									close(connection);
 									FD_CLR(connection, &_readfds);
 									continue;
 								}
-								RequestHeader reqHeader(buffer, bytes_read);
-
-								// Ora puoi utilizzare le informazioni sulla richiesta per elaborarla
-								Configuration *banani = servers[i]->GetConfig();
-								if(banani == NULL)
+								int index = findServerByFD(servers, clients.Get_conn(servers[i]->GetSocketfd())->fd);
+								Configuration config;
+								RequestHeader reqHeader(buffer, bytes_read + 1);
+								try
 								{
-									std::cout<<"banani di merda"<<std::endl;
-									return(1);
+									config = cf.GetConfig((*servers[index]).GetHostPort(), reqHeader.GetHost());
+									if(config.isEmpty())
+									{
+										throw std::exception();
+									}
+								}
+								catch(const std::out_of_range &e)
+								{	
+									continue;
+								}
+								catch(const std::exception &e)
+								{
+									std::cout<< "Error: no vaiable configuration found"<<std::endl;
+									continue;
 								}
 								std::cout << "Request method: " << reqHeader.GetMethod() << std::endl;
-								std::cout << "Request URL: " << reqHeader.GetPath() << std::endl;
-								ResponseHeader resHeader(servers[i], &reqHeader, banani);
+								std::cout << "Request path: " << reqHeader.GetPath() << std::endl;
+								std::cout<< "______________________________________________________"<<std::endl;
+								std::cout<<index<<std::endl;
+								ResponseHeader resHeader = ResponseHeader(servers[index], &reqHeader, &config);
 								std::string response;
-								std::cout << "BANANI"<<std::endl;
 								if(reqHeader.GetMethod() == "GET")
 								{
 									response = resHeader.makeResponse(200);
-									std::cout<<"request is GET"<<std::endl;
 								}
 								else
 								{
 									response = resHeader.makeResponse(405);
-									std::cout<<"response 405"<<std::endl;
 								}
-								std::cout << "everything done tipe so send byte"<<std::endl;
 								ssize_t byte_sent = send(connection, response.c_str(), response.length(), 0);
-								std::cout <<"data sent"<<std::endl;
 								if (byte_sent < 0)
 									std::cerr << "madonna laida"<<std::endl;
 							}
@@ -164,7 +180,6 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			std::cerr << "Error in select" << std::endl;
 			break;
 		}
 	}

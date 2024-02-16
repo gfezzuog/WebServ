@@ -63,22 +63,32 @@ void Configuration::setMethods(){
 
 void Configuration::setConfigsRoute()
 {
+	std::cout << "setConfigsRoute" << std::endl;
 	if(_map.find("routes") == _map.end())
 		return;
 	std::string::size_type start;
 	std::string::size_type end = 0;
 	std::string::size_type i;
-
+	std::cout << "setConfigsRoute FIRST iteration BEFORE while" << std::endl;
 	std::string config = _map["routes"];
+	std::cout << "setConfigsRoute ends with "<< config << std::endl;
 	while(end < config.size()){
+		std::cout << "setConfigsRoute first while" << std::endl;
 		i = 0;
 		while(isspace(config[i]))
 			i++;
 		start = config.find('{', 0);
 		end = config.find('}', 0);
+		std::cout << "setConfigsRoute before if inside while" << std::endl;
 		if(end != std::string::npos){
 			_configsRoute.insert(std::pair<std::string, ConfigurationRoute>(config.substr(i, start - i - 1), ConfigurationRoute(config.substr(start, end - start), config.substr(i, start - i - 1))));
 			config = config.substr(end + 1);
+		}
+		//printconfigsroute();
+		for(std::map<std::string, ConfigurationRoute>::iterator it = _configsRoute.begin(); it != _configsRoute.end(); it++)
+		{
+			std::cout << "setConfigsRoute: " << it->first << std::endl;
+			it->second.printConfigurationroute();
 		}
 	}
 }
@@ -108,8 +118,14 @@ unsigned int Configuration::GetPort()
     return std::atoi(hp.substr(hp.find(':', 0) + 1, hp.size()).c_str());
 }
 
-std::map<std::string, ConfigurationRoute> Configuration::GetConfigsRoute() const
+std::map<std::string, ConfigurationRoute> Configuration::GetConfigsRoute()
 {
+	// std::cout<<"-----------------GetConfigsRoute-----------------"<<std::endl;
+	// for(std::map<std::string, ConfigurationRoute>::iterator it = _configsRoute.begin(); it != _configsRoute.end(); it++)
+	// {
+	// 	std::cout << "GetConfigsRoute: " << it->first << std::endl;
+	// 	it->second.printConfigurationroute();
+	// }
 	return _configsRoute;
 }
 

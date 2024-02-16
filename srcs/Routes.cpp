@@ -4,7 +4,9 @@ ConfigurationRoute::ConfigurationRoute(){
 }
 
 ConfigurationRoute::ConfigurationRoute(std::string config, std::string path): _path(path){
+	std::cout << "ConfigurationRoute Setting map" << std::endl;
 	setMap(config);
+	std::cout << "ConfigurationRoute created" << std::endl;
 }
 
 ConfigurationRoute::~ConfigurationRoute(){
