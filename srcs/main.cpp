@@ -47,7 +47,7 @@ std::vector<Server *> initServers(std::map<std::string, std::vector<Configuratio
 		servers.push_back(s);
 		std::cout<<servers[i]->GetConfig()<<std::endl;
 		//servers[i]->GetConf().printclass();
-		servers[i]->GetConfig()->printclass();
+		//servers[i]->GetConfig()->printclass();
 		std::cout<< "server banani2"<<std::endl;
 		i++;
 	}
@@ -79,8 +79,8 @@ int main(int argc, char *argv[])
 	execAutoindex();
 
 	std::vector<Server *> servers = initServers(cf.GetMapConfig());
-	//std::cout<<"????????????????"<<servers[0]->GetConfig()<<std::endl;
-	//servers[0]->GetConfig()->printclass();
+	std::cout<<"????????????????"<<servers[0]->GetConfig()<<std::endl;
+	servers[0]->GetConfig()->printclass();
 	std::cout << "Servers created" << std::endl;
 	printReadFDs(_readfds);
 	Clients clients;
