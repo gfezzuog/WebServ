@@ -297,8 +297,8 @@ ConfigurationRoute ResponseHeader::getMatchingRoute(std::string path) const
 			return it->second;
 		it++;
 	}
+	_server->GetConf().printclass();
 	std::cout<<"AFTER while getMatchingRoute"<<std::endl;
-	
 	std::map<std::string, ConfigurationRoute> tmp = _server->GetConf().GetConfigsRoute();
 	std::cout<<"tmp created"<<std::endl;
 	if (tmp.find(std::string("/")) == tmp.end())

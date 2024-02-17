@@ -2,8 +2,8 @@
 
 Server::Server(unsigned int port, std::string host, Configuration* config)
     : _port(port), _host(host), _config(config) {
-    std::cout<<"-----------------GetConfigsRoute-----------------"<<std::endl;
-    _config->printclass();
+    // std::cout<<"-----------------GetConfigsRoute-----------------"<<std::endl;
+    // _config->printclass();
     }
 
 Server::~Server() {}
@@ -41,5 +41,6 @@ Configuration *Server::GetConfig() {
 
 Configuration Server::GetConf(){
     std::cout << "PORCO DI DIO CANE MALEDETTO STRONZO" << std::endl;
+    _config->printclass();
     return *_config;
 }
