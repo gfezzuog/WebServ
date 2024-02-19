@@ -1,4 +1,4 @@
-#include "../incl/WebServer.h"
+#include "../incs/WebServer.h"
 
 Clients::Clients()
 {}

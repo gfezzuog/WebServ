@@ -1,4 +1,4 @@
-#include "../incl/WebServer.h"
+#include "../incs/WebServer.h"
 
 Server::Server(unsigned int port, std::string host, Configuration* config)
     : _port(port), _host(host), _config(config) {
@@ -19,6 +19,7 @@ void Server::connect() {
     }
     int opt = 1;
     setsockopt(_socketfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
+    setsockopt(_socketfd, SOL_SOCKET, SO_NOSIGPIPE, &opt, sizeof(int));
     _sockAddress.sin_port = htons(_port);
     if (bind(_socketfd, (struct sockaddr*)&_sockAddress, sizeof(_sockAddress)) < 0) {
         throw OpenSocketException(std::string("Failed to bind port ").append(to_string(_port)).append(". errno: ").append(to_string(errno)));
@@ -41,6 +42,5 @@ Configuration *Server::GetConfig() {
 
 Configuration Server::GetConf(){
     std::cout << "PORCO DI DIO CANE MALEDETTO STRONZO" << std::endl;
-    _config->printclass();
     return *_config;
 }

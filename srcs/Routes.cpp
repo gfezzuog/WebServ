@@ -1,12 +1,10 @@
-#include "../incl/WebServer.h"
+#include "../incs/WebServer.h"
 
 ConfigurationRoute::ConfigurationRoute(){
 }
 
 ConfigurationRoute::ConfigurationRoute(std::string config, std::string path): _path(path){
-	std::cout << "ConfigurationRoute Setting map" << std::endl;
 	setMap(config);
-	std::cout << "ConfigurationRoute created" << std::endl;
 }
 
 ConfigurationRoute::~ConfigurationRoute(){
@@ -17,18 +15,21 @@ void ConfigurationRoute::setMap(std::string config){
 	std::string::size_type end = 0;
 	std::string::size_type i;
 
-	config = config.substr(1, config.size() - 2);
-	while(end < config.size()){
+	config = config.substr(2, config.size() - 2);
+	do {
 		i = 0;
 		while(isspace(config[i]))
 			i++;
 		start = config.find('=', 0);
 		end = config.find('\n', 0);
-		if(end != std::string::npos){
-			_map.insert(std::pair<std::string, std::string>(config.substr(i, start - i), config.substr(start + 1, end - start - 1)));
-			config = config.substr(end + 1);
-		}
-	}
+		if(end != std::string::npos)
+			_map.insert(std::make_pair<std::string, std::string>(
+				config.substr(i, start - i),
+				config.substr(start + 1, end - start - 1)));
+		config = config.substr(end + 1);
+	} while (end < config.size());
+	// for (std::map<std::string, std::string>::iterator i = _map.begin() ; i != _map.end(); i++)
+	// 	std::cout << GREEN << "first: " << RESET << std::left << std::setw(20) << std::setfill(' ') << (*i).first << GREEN << " second: " << RESET << (*i).second << std::endl;
 }
 
 std::string ConfigurationRoute::GetPath(){

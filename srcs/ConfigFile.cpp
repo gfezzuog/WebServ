@@ -1,4 +1,4 @@
-#include "../incl/WebServer.h"
+#include "../incs/WebServer.h"
 
 ConfigFile::ConfigFile(const std::string& inputfile) : _file(inputfile.c_str()) 
 {

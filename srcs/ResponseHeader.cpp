@@ -1,4 +1,4 @@
-# include "../incl/WebServer.h"
+# include "../incs/WebServer.h"
 
 int execAutoindex()
 {
@@ -278,12 +278,6 @@ std::string ResponseHeader::getDate() const
 	return date;
 }
 
-// void printMap(std::map<std::string, std::string> & map) {
-//     for (const auto& pair : map) {
-//         std::cout << pair.first << " : " << pair.second << std::endl;
-//     }
-// }
-
 ConfigurationRoute ResponseHeader::getMatchingRoute(std::string path) const
 {
 	std::map<std::string, ConfigurationRoute> configRoute = _config->GetConfigsRoute();
@@ -297,7 +291,6 @@ ConfigurationRoute ResponseHeader::getMatchingRoute(std::string path) const
 			return it->second;
 		it++;
 	}
-	_server->GetConf().printclass();
 	std::cout<<"AFTER while getMatchingRoute"<<std::endl;
 	std::map<std::string, ConfigurationRoute> tmp = _server->GetConf().GetConfigsRoute();
 	std::cout<<"tmp created"<<std::endl;

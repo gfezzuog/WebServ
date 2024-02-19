@@ -1,4 +1,4 @@
-#include "../incl/WebServer.h"
+#include "../incs/WebServer.h"
 
 Configuration::Configuration(){
 }
@@ -23,7 +23,9 @@ void Configuration::setMap(std::string config){
 			while(config.find('}', end + 1) != std::string::npos)
 				end = config.find('}', end + 1);
 			if(end != std::string::npos)
-				_map.insert(std::pair<std::string, std::string>(config.substr(1, start - 1), config.substr(start + 1, end - start)));
+				_map.insert(std::pair<std::string, std::string>(
+					config.substr(1, start - 1), 
+					config.substr(start + 1, end - start)));
 			config = config.substr(end, 0);
 			if(end != std::string::npos)
 				end = config.find('\n', end);
@@ -33,7 +35,9 @@ void Configuration::setMap(std::string config){
 		else {
 			end = config.find('\n', 0);
 			if(end != std::string::npos)
-				_map.insert(std::pair<std::string, std::string>(config.substr(1, start - 1), config.substr(start + 1, end - start - 1)));
+				_map.insert(std::pair<std::string, std::string>(
+					config.substr(1, start - 1), 
+					config.substr(start + 1, end - start - 1)));
 			config = config.substr(end + 1);
 		}
 	}
@@ -63,34 +67,23 @@ void Configuration::setMethods(){
 
 void Configuration::setConfigsRoute()
 {
-	std::cout << "setConfigsRoute" << std::endl;
-	if(_map.find("routes") == _map.end())
+	if (_map.find("routes") == _map.end())
 		return;
+	std::string strRoutes = _map.at("routes");
 	std::string::size_type start;
 	std::string::size_type end = 0;
-	std::string::size_type i;
-	std::cout << "setConfigsRoute FIRST iteration BEFORE while" << std::endl;
-	std::string config = _map["routes"];
-	std::cout << "setConfigsRoute ends with "<< config << std::endl;
-	while(end < config.size()){
-		std::cout << "setConfigsRoute first while" << std::endl;
-		i = 0;
-		while(isspace(config[i]))
-			i++;
-		start = config.find('{', 0);
-		end = config.find('}', 0);
-		std::cout << "setConfigsRoute before if inside while" << std::endl;
-		if(end != std::string::npos){
-			_configsRoute.insert(std::pair<std::string, ConfigurationRoute>(config.substr(i, start - i - 1), ConfigurationRoute(config.substr(start, end - start), config.substr(i, start - i - 1))));
-			config = config.substr(end + 1);
-		}
-		//printconfigsroute();
-		for(std::map<std::string, ConfigurationRoute>::iterator it = _configsRoute.begin(); it != _configsRoute.end(); it++)
-		{
-			std::cout << "setConfigsRoute: " << it->first << std::endl;
-			it->second.printConfigurationroute();
-		}
-	}
+	std::string::size_type last = 0;
+
+	do {
+		start = strRoutes.find('{', 0);
+		end = strRoutes.find('}', 0);
+		last = strRoutes.find('/', last);
+		_configsRoute.insert(std::make_pair<std::string, ConfigurationRoute>(
+			strRoutes.substr(last, strRoutes.find('\n', last) - last),
+			ConfigurationRoute(strRoutes.substr(start, end - start + 1), strRoutes.substr(last, strRoutes.find('\n', last) - last))));
+		strRoutes = strRoutes.substr(end + 1);
+		end = strRoutes.find('}', 0);
+	} while (end < strRoutes.size());
 }
 
 std::string Configuration::GetHostPort()
@@ -115,7 +108,7 @@ std::string Configuration::GetHost()
 unsigned int Configuration::GetPort()
 {
     std::string hp = GetHostPort();
-    return std::atoi(hp.substr(hp.find(':', 0) + 1, hp.size()).c_str());
+    return std::atoi(hp.substr(hp.find(':', 0) + 1, hp.length() - hp.find(':', 0) - 1).c_str());
 }
 
 std::map<std::string, ConfigurationRoute> Configuration::GetConfigsRoute()

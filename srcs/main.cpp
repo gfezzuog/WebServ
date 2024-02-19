@@ -1,4 +1,4 @@
-#include "../incl/WebServer.h"
+#include "../incs/WebServer.h"
 
 bool run = 1;
 fd_set _readfds;
@@ -30,10 +30,6 @@ std::vector<Server *> initServers(std::map<std::string, std::vector<Configuratio
 		Server *s = new Server((*it).second[0].GetPort(), (*it).second[0].GetHost(), &((*it).second[0]));
 		try
 		{
-//			std::cout<<"SERVER CREATION VALUES"<<std::endl;
-//			std::cout<<it->first<<std::endl;
-			//s->GetConf().printclass();
-			// std::cout<<"&&&&&&&&&&&&&&&&&&&&&&&&&&&"<<std::endl;
 			s->connect();
 			FD_SET(s->GetSocketfd(), &_readfds);
 			
@@ -43,12 +39,7 @@ std::vector<Server *> initServers(std::map<std::string, std::vector<Configuratio
 			std::cout << RED << e.what() << RESET << std::endl;
 		}
 		std::cout<< "server bananioooooo"<<std::endl;
-		std::cout<< s->GetConfig() << std::endl;
 		servers.push_back(s);
-		std::cout<<servers[i]->GetConfig()<<std::endl;
-		//servers[i]->GetConf().printclass();
-		//servers[i]->GetConfig()->printclass();
-		std::cout<< "server banani2"<<std::endl;
 		i++;
 	}
 	return servers;
@@ -80,8 +71,6 @@ int main(int argc, char *argv[])
 
 	std::vector<Server *> servers = initServers(cf.GetMapConfig());
 	std::cout<<"????????????????"<<servers[0]->GetConfig()<<std::endl;
-	servers[0]->GetConfig()->printclass();
-	std::cout << "Servers created" << std::endl;
 	printReadFDs(_readfds);
 	Clients clients;
 
@@ -156,7 +145,6 @@ int main(int argc, char *argv[])
 									std::cout<<"server index host port = "<<std::endl;
 									std::cout<< servers[index]->GetHostPort()<<std::endl;
 									config = cf.GetConfig((*servers[index]).GetHostPort(), reqHeader.GetHost());
-									config.printclass();
 									if(config.isEmpty())
 									{
 										throw std::exception();
@@ -173,9 +161,7 @@ int main(int argc, char *argv[])
 								}
 								std::cout << "Request method: " << reqHeader.GetMethod() << std::endl;
 								std::cout << "Request path: " << reqHeader.GetPath() << std::endl;
-								std::cout<< "Index value before printclass"<<std::endl;
 								std::cout<<index<<std::endl;
-								config.printclass();
 								ResponseHeader resHeader = ResponseHeader(servers[index], &reqHeader, &config);
 								std::string response;
 								if(reqHeader.GetMethod() == "GET")
