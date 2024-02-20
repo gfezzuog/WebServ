@@ -63,9 +63,6 @@ int main(int argc, char *argv[])
 	}
 	FD_ZERO(&_readfds);
 	ConfigFile cf(argc == 1 ? "default_config_file.conf" : argv[1]);
-	std::cout<<"-------------------------------------------------"<<std::endl;
-	std::cout<<cf.GetConfigs().size()<<std::endl;
-	std::cout<<"-------------------------------------------------"<<std::endl;
 	signal(SIGINT, signal_handler);
 	execAutoindex();
 
@@ -164,17 +161,60 @@ int main(int argc, char *argv[])
 								std::cout<<index<<std::endl;
 								ResponseHeader resHeader = ResponseHeader(servers[index], &reqHeader, &config);
 								std::string response;
-								if(reqHeader.GetMethod() == "GET")
-								{
-									response = resHeader.makeResponse(200);
+								try{
+									if(reqHeader.GetMethod() == "POST" && reqHeader.GetBody().length() > config.GetLimitSizeBody()){
+										resHeader = ResponseHeader(NULL, std::make_pair("413", config.GetErrorPath("413")));
+										throw ServerException(resHeader.getError().first,
+											resHeader.makeResponse(std::atoi(resHeader.getError().first.c_str())), connection);
+									}
+									else {
+										if(!config.GetRedirectionCode())
+											response.append(resHeader.makeResponse(200));
+										else{
+											response.append(resHeader.makeResponse(config.GetRedirectionCode()));
+											std::string redir("Location");
+											response.append(config.GetRedirectionUrl());
+											response.append("\r\n");
+											response.insert(response.find('\n') + 1, redir);
+										}
+										if(!resHeader.getError().first.empty()){
+											resHeader = ResponseHeader(NULL, resHeader.getError());
+											throw ServerException(resHeader.getError().first,
+												resHeader.makeResponse(std::atoi(resHeader.getError().first.c_str())), connection);
+										}
+									}
 								}
-								else
-								{
-									response = resHeader.makeResponse(405);
+								catch (const ServerException &e){
+									response = e.what();
 								}
-								ssize_t byte_sent = send(connection, response.c_str(), response.length(), 0);
-								if (byte_sent < 0)
-									std::cerr << "madonna laida"<<std::endl;
+								std::string chunck;
+								int data_sent = 0;
+								
+								do{
+									chunck = response.substr(0, response.size());
+									data_sent = send(connection, chunck.c_str(), chunck.size(), 0);
+									if(data_sent < 0)
+										break;
+									response.substr(data_sent);
+								} while(response.size());
+								index = findServerByFD(servers, connection);
+								FD_SET(sockfd, &_readfds);
+								// std::cout<<"RETURN FROM CON_DELETE: "<<clients.conn_delete(servers[index]->GetSocketfd())<<std::endl;
+								// clients.conn_delete(clients.Get_conn(servers[index]->GetSocketfd())->fd);
+								usleep(100);
+								// if(reqHeader.GetMethod() == "GET")
+								// {
+								// 	response = resHeader.makeResponse(200);
+								// }
+								// else if (reqHeader.GetMethod() == "POST")
+								// {
+								// 	response = resHeader.makeResponse(413);
+								// }
+								// else
+								// 	response = resHeader.makeResponse(405);
+								// ssize_t byte_sent = send(connection, response.c_str(), response.length(), 0);
+								// if (byte_sent < 0)
+								// 	std::cerr << "madonna laida"<<std::endl;
 							}
 						}
 					}
@@ -190,7 +230,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}
-		std::cout << RED << "EXIT" << RESET << std::endl;
+		std::cout << RED << "Cribbio EXIT" << RESET << std::endl;
 		for (size_t i = 0; i < servers.size(); ++i)
 		{
 			servers[i]->disconnect();

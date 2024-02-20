@@ -282,10 +282,7 @@ ConfigurationRoute ResponseHeader::getMatchingRoute(std::string path) const
 {
 	std::map<std::string, ConfigurationRoute> configRoute = _config->GetConfigsRoute();
 	std::map<std::string, ConfigurationRoute>::reverse_iterator it = configRoute.rbegin();
-	for(auto i : configRoute)
-	{
-		std::cout<<i.first<<std::endl;
-	}
+
 	while (it != configRoute.rend()) {
 		if (path.rfind(it->first, 0) == 0)
 			return it->second;
