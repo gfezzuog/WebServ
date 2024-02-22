@@ -113,12 +113,6 @@ unsigned int Configuration::GetPort()
 
 std::map<std::string, ConfigurationRoute> Configuration::GetConfigsRoute()
 {
-	// std::cout<<"-----------------GetConfigsRoute-----------------"<<std::endl;
-	// for(std::map<std::string, ConfigurationRoute>::iterator it = _configsRoute.begin(); it != _configsRoute.end(); it++)
-	// {
-	// 	std::cout << "GetConfigsRoute: " << it->first << std::endl;
-	// 	it->second.printConfigurationroute();
-	// }
 	return _configsRoute;
 }
 

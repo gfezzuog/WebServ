@@ -81,86 +81,44 @@ void ResponseHeader::setCodeMap()
 
 void ResponseHeader::setPath()
 {
-	// std::cout<<"polpette al sugo"<<std::endl;
 	std::string path = _request->GetPath();
-	std::cout<<path<<" thats the value from _request get path"<<std::endl;
 	ConfigurationRoute route = getMatchingRoute(path);
 	if (route.GetMethods().rfind(_request->GetMethod()) == std::string::npos)
-	{
-		std::cout<< "BEFORE Error 405"<<std::endl;
 		_error = std::make_pair("405", _config->GetErrorPath("405"));
-		std::cout<< "Error 405"<<std::endl;
-	}
 	std::string::size_type temp = path.rfind(route.GetPath(), 0);
-	std::cout<<"BEFORE First If"<<std::endl;
 	if (temp == 0)
-	{
 		temp = route.GetPath().length();
-		std::cout<<"First If"<<std::endl;
-	}
-	std::cout<<"BEFORE second If"<<std::endl;
 	if (!route.GetRoot().empty())
-	{
 		_path = route.GetRoot().append("/" + path.substr(temp, path.size() - temp));
-		std::cout<<"Second If"<<std::endl;
-	}
 	else
-	{
-		std::cout<<"Else second if"<<std::endl;
 		_path = path;
-		std::cout<<path<<"  "<<_path<<std::endl;
-	}
 	ConfigurationRoute newRoute = getMatchingRoute(_path);
-	std::cout<<"BEFORE third If"<<std::endl;
 	if (newRoute.GetMethods().rfind(_request->GetMethod()) == std::string::npos)
-	{
-		std::cout<<"third If"<<std::endl;
 		_error = std::make_pair("405", _config->GetErrorPath("405"));
-	}
-	std::cout<<"BEFORE fourth If"<<std::endl;
 	if (_path[0] == '/')
-	{
-		std::cout<<"fourth If"<<std::endl;
 		_path = _path.substr(1, _path.size() - 1);
-		std::cout<<_path<<std::endl;
-	}
-	std::cout<<"BEFORE fifth If"<<std::endl;
 	if (_path[_path.size() - 1] == '/')
-	{
-		std::cout<<"fifth If"<<std::endl;
 		_path = _path.substr(0, _path.size() - 1);
-		std::cout<<_path<<std::endl;
-	}
-	std::cout<<"BEFORE sixth If"<<std::endl;
 	if (!newRoute.GetIndex().empty() && _path == newRoute.GetPath().substr(1, _path.size()))
-	{
-		std::cout<<"Sixth If"<<std::endl;
 		_path.append(newRoute.GetIndex());
-	}
-	std::cout<<"BEFORE seventh If"<<std::endl;
 	if (((newRoute.GetRoot().size() == 0 && newRoute.GetPath().size() > 0
 		&& _path == newRoute.GetPath().substr(1, _path.size()))
 		|| (route.GetRoot().size() > 0
 		&& _path == route.GetRoot().substr(1, _path.size())))
 		&& route.GetAutoIndex())
 	{
-		std::cout<<"Seventh If"<<std::endl;
 		std::ifstream f(_path.c_str());
 		struct stat s;
 		stat(_path.c_str(), &s);
 		if (f.fail() || s.st_mode & S_IFDIR)
 		{
-			std::cout<<"Seventh If FAIL"<<std::endl;
 			execAutoindex();
 			if (_path.size() == 0)
 				_path = ".";
 			_path.append("/.index.html");
 		}
 		else
-		{
-			std::cout<<"Seventh If internal else"<<std::endl;
 			f.close();
-		}
 	}
 	std::cout << _path << std::endl;
 }
@@ -170,11 +128,9 @@ void ResponseHeader::setContent()
 	std::ifstream file;
 	file.open(_path.c_str(), std::ios::in | std::ios::binary);
 	struct stat s;
-	std::cout<<"_path values"<<_path<<std::endl;
 	stat(_path.c_str(), &s);
 	if (access(_path.c_str(), F_OK) == 0 && access(_path.c_str(), R_OK) != 0)
 	{
-		std::cout<<"make_pair 403"<<std::endl;
 		_error = std::make_pair("403", _config->GetErrorPath("403"));
 		return ;
 	}
@@ -184,7 +140,6 @@ void ResponseHeader::setContent()
 		std::string type = dotPos != std::string::npos ? _path.substr(dotPos, _path.size() - dotPos) : "";
 		if (_request && _request->GetMethod() == "DELETE")
 		{
-			std::cout<<"_Request == DELETE"<<std::endl;
 			if (remove(_path.c_str()) == 0)
 				_content = "\r\n<h1>File deleted successfully</h1>";
 			else
@@ -193,19 +148,15 @@ void ResponseHeader::setContent()
 		}
 		else if (_error.first.empty() && (type == ".php" || type == ".py"))
 		{
-			std::cout<<"_error empty and type == .py"<<std::endl;
 			ConfigurationRoute route = getMatchingRoute(_request->GetPath());
 			if (route.GetCGIPath()[0] == type)
 			{
-				std::cout<<"route.GetCGIPath[0] == type"<<std::endl;
 				setEnv();
 				_content = executeCgi(route.GetCGIPath());
 				_contentLenght = _content.size();
-				std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << _content << std::endl;
 			}
 			else
 			{
-				std::cout<<"route.GetCGIPath[0] != .py or .php"<<std::endl;
 				std::string tmp = std::string("\r\n");
 				file.seekg(0, std::ios::end);
 				_content.reserve(file.tellg());
@@ -218,8 +169,6 @@ void ResponseHeader::setContent()
 		}
 		else
 		{
-			std::cout<< _error.first << " "<<type<<std::endl;
-			std::cout<<"_error is not empty or tipe != .php or .py"<<std::endl;
 			std::string tmp = std::string("\r\n");
 			file.seekg(0, std::ios::end);
 			_content.reserve(file.tellg());
@@ -262,8 +211,6 @@ void ResponseHeader::setContentType(std::string path, std::string type)
 		_contentType = "image/bmp";
 	else
 		_contentType = "text/plain";
-	// if (getError().first.empty() && _request->getAccept().rfind(_contentType, 0) == std::string::npos)
-	// 		_error = std::make_pair("406", _config.GetErrorPath("406"));
 }
 
 std::string ResponseHeader::getResponseCode(int code) const

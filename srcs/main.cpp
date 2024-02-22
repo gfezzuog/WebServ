@@ -150,8 +150,12 @@ int main(int argc, char *argv[])
 									}
 									else {
 										if(!config.GetRedirectionCode())
+                                        {
+                                            std::cout<<"Append for make response 200\n";
 											response.append(resHeader.makeResponse(200));
-										else{
+                                        }
+                                        else{
+                                            std::cout<<"Make response called\n";
 											response.append(resHeader.makeResponse(config.GetRedirectionCode()));
 											std::string redir("Location");
 											response.append(config.GetRedirectionUrl());
@@ -183,7 +187,7 @@ int main(int argc, char *argv[])
 								clients.conn_delete(connection);
 								// std::cout<<"RETURN FROM CON_DELETE: "<<clients.conn_delete(servers[index]->GetSocketfd())<<std::endl;
 								// clients.conn_delete(clients.Get_conn(servers[index]->GetSocketfd())->fd);
-								usleep(100);
+								//usleep(100);
 								// if(reqHeader.GetMethod() == "GET")
 								// {
 								// 	response = resHeader.makeResponse(200);

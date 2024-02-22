@@ -2,8 +2,6 @@
 
 Server::Server(unsigned int port, std::string host, Configuration* config)
     : _port(port), _host(host), _config(config) {
-    // std::cout<<"-----------------GetConfigsRoute-----------------"<<std::endl;
-    // _config->printclass();
     }
 
 Server::~Server() {}
@@ -28,7 +26,6 @@ void Server::connect() {
         throw OpenSocketException(std::string("Failed to listen on socket. errno: ").append(to_string(errno)));
     }
     FD_SET(_socketfd, &_readfds);
-    // printReadFDs(_readfds);
     std::cout << "Connected to host: " << _host << " and port: " << _port << std::endl;
 }
 
@@ -41,6 +38,5 @@ Configuration *Server::GetConfig() {
 }
 
 Configuration Server::GetConf(){
-    std::cout << "PORCO DI DIO CANE MALEDETTO STRONZO" << std::endl;
     return *_config;
 }
