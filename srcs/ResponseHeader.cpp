@@ -18,13 +18,9 @@ ResponseHeader::ResponseHeader(Server *server, RequestHeader *request, Configura
 	: _server(server), _request(request), _config(config)
 {
 	setCodeMap();
-    std::cout<<"111111111111111111"<<std::endl;
 	setPath();
-    std::cout<<"22222222222222222222"<<std::endl;
 	setContent();
-    std::cout<<"333333333333333333333"<<std::endl;
 	setContentType(_path);
-    std::cout<<"Response header created"<<std::endl;
 }
 
 ResponseHeader::ResponseHeader(RequestHeader *request, std::pair<std::string, std::string> error)
@@ -174,9 +170,11 @@ void ResponseHeader::setContent()
 	std::ifstream file;
 	file.open(_path.c_str(), std::ios::in | std::ios::binary);
 	struct stat s;
+	std::cout<<"_path values"<<_path<<std::endl;
 	stat(_path.c_str(), &s);
 	if (access(_path.c_str(), F_OK) == 0 && access(_path.c_str(), R_OK) != 0)
 	{
+		std::cout<<"make_pair 403"<<std::endl;
 		_error = std::make_pair("403", _config->GetErrorPath("403"));
 		return ;
 	}
@@ -186,6 +184,7 @@ void ResponseHeader::setContent()
 		std::string type = dotPos != std::string::npos ? _path.substr(dotPos, _path.size() - dotPos) : "";
 		if (_request && _request->GetMethod() == "DELETE")
 		{
+			std::cout<<"_Request == DELETE"<<std::endl;
 			if (remove(_path.c_str()) == 0)
 				_content = "\r\n<h1>File deleted successfully</h1>";
 			else
@@ -194,16 +193,20 @@ void ResponseHeader::setContent()
 		}
 		else if (_error.first.empty() && (type == ".php" || type == ".py"))
 		{
+			std::cout<<"_error empty and type == .py"<<std::endl;
 			ConfigurationRoute route = getMatchingRoute(_request->GetPath());
 			if (route.GetCGIPath()[0] == type)
 			{
+				std::cout<<"route.GetCGIPath[0] == type"<<std::endl;
 				setEnv();
 				_content = executeCgi(route.GetCGIPath());
 				_contentLenght = _content.size();
+				std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << _content << std::endl;
 			}
 			else
 			{
-					std::string tmp = std::string("\r\n");
+				std::cout<<"route.GetCGIPath[0] != .py or .php"<<std::endl;
+				std::string tmp = std::string("\r\n");
 				file.seekg(0, std::ios::end);
 				_content.reserve(file.tellg());
 				file.seekg(0, std::ios::beg);
@@ -215,6 +218,8 @@ void ResponseHeader::setContent()
 		}
 		else
 		{
+			std::cout<< _error.first << " "<<type<<std::endl;
+			std::cout<<"_error is not empty or tipe != .php or .py"<<std::endl;
 			std::string tmp = std::string("\r\n");
 			file.seekg(0, std::ios::end);
 			_content.reserve(file.tellg());
@@ -243,8 +248,7 @@ void ResponseHeader::setContentType(std::string path, std::string type)
 	}
 	size_t dotPos = path.rfind(".");
 	type = dotPos != std::string::npos ? path.substr(dotPos + 1, path.size() - dotPos) : "";
-	if (type == "html" || (type == "php" && route.GetCGIPath()[0] == "php")
-		|| (type == "py" && route.GetCGIPath()[0] == "py") || _request->GetMethod() == "DELETE")
+	if (type == "html" || (type == "py" && route.GetCGIPath()[0] == "py") || _request->GetMethod() == "DELETE")
 		_contentType = "text/html";
 	else if (type == "css")
 		_contentType = "text/css";
@@ -288,16 +292,12 @@ ConfigurationRoute ResponseHeader::getMatchingRoute(std::string path) const
 			return it->second;
 		it++;
 	}
-	std::cout<<"AFTER while getMatchingRoute"<<std::endl;
 	std::map<std::string, ConfigurationRoute> tmp = _server->GetConf().GetConfigsRoute();
-	std::cout<<"tmp created"<<std::endl;
 	if (tmp.find(std::string("/")) == tmp.end())
 	{
-		std::cout<<"Inside if string /"<<std::endl;
 		std::cerr << RED << "Error: Parsing configuration file is gone wrong" << RESET << std::endl;
 		exit(1);
 	}
-	std::cout<<"BEFORE RETURN getMatchingRoute"<<std::endl;
 	return tmp.find(std::string("/"))->second;
 }
 

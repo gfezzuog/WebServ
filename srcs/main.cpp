@@ -38,7 +38,6 @@ std::vector<Server *> initServers(std::map<std::string, std::vector<Configuratio
 		{
 			std::cout << RED << e.what() << RESET << std::endl;
 		}
-		std::cout<< "server bananioooooo"<<std::endl;
 		servers.push_back(s);
 		i++;
 	}
@@ -67,33 +66,21 @@ int main(int argc, char *argv[])
 	execAutoindex();
 
 	std::vector<Server *> servers = initServers(cf.GetMapConfig());
-	std::cout<<"????????????????"<<servers[0]->GetConfig()<<std::endl;
-	printReadFDs(_readfds);
 	Clients clients;
 
 	while (run)
 	{
-		std::cout << "run begin" << std::endl;
 		int maxfd = -1;
 		for (size_t i = 0; i < servers.size(); ++i)
 		{
 			int sockfd = servers[i]->GetSocketfd();
-			std::cout << sockfd << " il file descriptor è questo" << std::endl;
 			if (sockfd > maxfd)
 				maxfd = sockfd;
 		}
-		std::cout << "max fd done " << maxfd << std::endl;
 		for (size_t i = 0; i < servers.size(); ++i)
-		{
 			FD_SET(servers[i]->GetSocketfd(), &_readfds);
-			if (FD_ISSET(servers[i]->GetSocketfd(), &_readfds))
-				std::cout << "FD_SET DONE " << i << std::endl;
-			else
-				std::cout << "error???????" << std::endl;
-		}
 
 		int num_ready = select(maxfd + 1, &_readfds, NULL, NULL, NULL);
-		std::cout << "select return = " << num_ready << std::endl;
 
 		if (num_ready > 0)
 		{
@@ -107,7 +94,6 @@ int main(int argc, char *argv[])
 						struct sockaddr_in clientAddr;
 						socklen_t clientAddrLen = sizeof(clientAddr);
 						int connection = accept(sockfd, (struct sockaddr *)&clientAddr, &clientAddrLen);
-						std::cout<< "connection = " << connection << std::endl;
 						if (connection < 0)
 						{
 							std::cerr << "Failed to accept connection. errno: " << errno << std::endl;
@@ -139,8 +125,6 @@ int main(int argc, char *argv[])
 								RequestHeader reqHeader(buffer, bytes_read + 1);
 								try
 								{
-									std::cout<<"server index host port = "<<std::endl;
-									std::cout<< servers[index]->GetHostPort()<<std::endl;
 									config = cf.GetConfig((*servers[index]).GetHostPort(), reqHeader.GetHost());
 									if(config.isEmpty())
 									{
@@ -156,9 +140,6 @@ int main(int argc, char *argv[])
 									std::cout<< "Error: no vaiable configuration found"<<std::endl;
 									continue;
 								}
-								std::cout << "Request method: " << reqHeader.GetMethod() << std::endl;
-								std::cout << "Request path: " << reqHeader.GetPath() << std::endl;
-								std::cout<<index<<std::endl;
 								ResponseHeader resHeader = ResponseHeader(servers[index], &reqHeader, &config);
 								std::string response;
 								try{
@@ -199,6 +180,7 @@ int main(int argc, char *argv[])
 								} while(response.size());
 								index = findServerByFD(servers, connection);
 								FD_SET(sockfd, &_readfds);
+								clients.conn_delete(connection);
 								// std::cout<<"RETURN FROM CON_DELETE: "<<clients.conn_delete(servers[index]->GetSocketfd())<<std::endl;
 								// clients.conn_delete(clients.Get_conn(servers[index]->GetSocketfd())->fd);
 								usleep(100);
