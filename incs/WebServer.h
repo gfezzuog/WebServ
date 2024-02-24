@@ -12,6 +12,7 @@
 
 
 #define MAX_EVENTS 1024
+#define DEFAUL_PATH "/Users/cbuszyns/Desktop/Webserv2/default_config_file.conf"
 #define DEFAULT_ERROR_PATH "errors/error_500.html"
 #define PYTHON3PATH "/usr/local/bin/python3"
 #define AUTOINDEXPATH "./utils/generate_directory_index.py"

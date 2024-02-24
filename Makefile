@@ -23,6 +23,8 @@ all:		$(NAME)
 
 clean:
 			${RM} $(OBJ)
+			rm -rf uploads
+			find . -name "*.index.html" -type f -delete
 
 fclean: 	clean
 			${RM} $(NAME) ${OBJ}

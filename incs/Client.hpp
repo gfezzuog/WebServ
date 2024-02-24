@@ -8,10 +8,8 @@ class Clients
 		struct c_data
 		{
 			int fd;
-			int _maxfd;
-			fd_set _readfds;
-			Configuration *config;
-			c_data(int conn) : fd(conn){return;}
+			int sockfd;
+			c_data(int conn, int socketfd) : fd(conn), sockfd(socketfd){return;}
 		};
 
 		std::vector<c_data> _clients;
@@ -21,7 +19,7 @@ class Clients
 		~Clients();
 
 		c_data *Get_conn(int fd);
-		int conn_add(int fd);
+		int conn_add(int fd, int socketfd);
 		int conn_delete(int fd);
 		
 };
