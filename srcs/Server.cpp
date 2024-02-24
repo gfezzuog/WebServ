@@ -25,7 +25,6 @@ void Server::connect() {
     if (listen(_socketfd, 10) < 0) {
         throw OpenSocketException(std::string("Failed to listen on socket. errno: ").append(to_string(errno)));
     }
-    FD_SET(_socketfd, &_readfds);
     std::cout << "Connected to host: " << _host << " and port: " << _port << std::endl;
 }
 
@@ -39,4 +38,9 @@ Configuration *Server::GetConfig() {
 
 Configuration Server::GetConf(){
     return *_config;
+}
+
+void Server::closing()
+{
+    close(_socketfd);
 }

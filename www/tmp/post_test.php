@@ -18,7 +18,6 @@
 	  echo "<center><br><br><br><h1>Cookie not set!</h1></center>";
 	  echo "<center><br><a href='upload.html'>login</a></center>";
 	}
-
 	?>
 
 	</body>

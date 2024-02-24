@@ -120,7 +120,7 @@ void ResponseHeader::setPath()
 		else
 			f.close();
 	}
-	std::cout << _path << std::endl;
+	std::cout << "Path in make response: "<<  _path << std::endl;
 }
 
 void ResponseHeader::setContent()
