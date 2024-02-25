@@ -61,7 +61,7 @@ std::string RequestHeader::GetAccept() const
 
 std::string RequestHeader::GetHost() const
 {
-    return _mapRH.at("Host");
+    return _mapRH.at("Host").substr(0, _mapRH.at("Host").find(':', 0));
 }
 
 std::string RequestHeader::GetPath() const {

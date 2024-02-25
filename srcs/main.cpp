@@ -67,10 +67,13 @@ int main(int argc, char *argv[]){
 
 	int maxfd = 0;
 	int sockfd = 0;
+	fd_set _writefds;
+	
 	while (run)
 	{
 		int connection = 0;
 		FD_ZERO(&_readfds);
+		FD_ZERO(&_writefds);
 		for(size_t i = 0; i < servers.size(); i++)
 		{
 			sockfd = servers[i]->GetSocketfd();
@@ -109,10 +112,16 @@ int main(int argc, char *argv[]){
 					}
 					else
 					{
-						FD_SET(connection, &_readfds);
+						FD_SET(connection, &_writefds);
 						if(connection > maxfd)
 							maxfd = connection;
 						printReadFDs(_readfds);
+						if (connection < 0)
+						{
+							std::cerr << "Failed to accept connection. errno: " << errno << std::endl;
+							continue;
+						}
+						fdReady = select(maxfd + 1, &_readfds, &_writefds, NULL, NULL);
 					}
 				}
 				catch(const ServerException &e)
@@ -134,12 +143,13 @@ int main(int argc, char *argv[]){
 					bytes_read = recv(connection, buffer, 8192, 0);
 					std::cout << RED << "recv: " << bytes_read << RESET << std::endl;
 					total_bytes += bytes_read;
-					std::cout << BLUE << "Before if bytes_read. Connection = " << connection << std::endl;
+					std::cout << buffer << std::endl;
 					if(bytes_read > 0)
 						buffStr.append(buffer, bytes_read);
 					usleep(100);
 				}while(bytes_read > 0);
 				std::cout << BLUE << "After do while. Connection = " << connection << RESET << std::endl;
+				std::cout << "BuffStr:" << std::endl << buffStr << std::endl;
 				RequestHeader reqHeader = RequestHeader(buffStr, total_bytes + 1);
 				try
 				{
@@ -203,9 +213,11 @@ int main(int argc, char *argv[]){
 
 				buffStr.clear();
 				index = findServerByFD(servers, clients.Get_conn(connection)->sockfd);
-				FD_CLR(connection, &_readfds);
-				close(connection);
+				FD_CLR(connection, &_writefds);
+				FD_CLR(sockfd, &_readfds);
 				clients.conn_delete(connection);
+				close(connection);
+				std::cout << GREEN << "After clearing connections" << RESET << std::endl;
 				usleep(100);
 			}
 		}
