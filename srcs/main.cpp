@@ -68,10 +68,13 @@ int main(int argc, char *argv[]){
 	int maxfd = 0;
 	int sockfd = 0;
 	fd_set _writefds;
+	struct timeval tv;
+	tv.tv_sec = 60;
+	tv.tv_usec = 0.0;
 	
 	while (run)
 	{
-		int connection = 0;
+		int connection;
 		FD_ZERO(&_readfds);
 		FD_ZERO(&_writefds);
 		for(size_t i = 0; i < servers.size(); i++)
@@ -83,7 +86,7 @@ int main(int argc, char *argv[]){
 		}
 		printReadFDs(_readfds);
 		int fdReady = 0;
-		fdReady = select(maxfd + 1, &_readfds, NULL, NULL, NULL);
+		fdReady = select(maxfd + 1, &_readfds, NULL, NULL, &tv);
 		std::cout << "select what the actuall fuck: " << fdReady<< std::endl;
 		printReadFDs(_readfds);
 		std::string buffStr;
@@ -94,14 +97,21 @@ int main(int argc, char *argv[]){
 			sockfd = servers[i]->GetSocketfd();
 			int index = findServerByFD(servers, sockfd);
 			std::cout << "index: " << index << " connection: "<< connection<< std::endl;
-			if(connection == 0)
+			if(FD_ISSET(connection, &_writefds) == 0)
 			{
 				// struct sockaddr_in clientAddr;
 				// socklen_t clientAddrLen = sizeof(clientAddr);
 				// connection = accept(servers[index]->GetSocketfd(), (struct sockaddr *)&clientAddr, &clientAddrLen);
 				ssize_t addresslen = sizeof(sockaddr);
 				std::cout << "why???? " << std::endl;
-				connection = accept(sockfd, (struct sockaddr *)(*servers[index]).GetSocketAddr(), (socklen_t *)&addresslen);
+				try
+				{
+					connection = accept(sockfd, (struct sockaddr *)(*servers[index]).GetSocketAddr(), (socklen_t *)&addresslen);
+				}
+				catch(const std::exception &e)
+				{
+					std::cerr << RED << "Error in accept. errno: " << errno << RESET << std::endl; 
+				}
 				std::cout << "Connection: " << connection << std::endl;
 				try
 				{
@@ -116,12 +126,7 @@ int main(int argc, char *argv[]){
 						if(connection > maxfd)
 							maxfd = connection;
 						printReadFDs(_readfds);
-						if (connection < 0)
-						{
-							std::cerr << "Failed to accept connection. errno: " << errno << std::endl;
-							continue;
-						}
-						fdReady = select(maxfd + 1, &_readfds, &_writefds, NULL, NULL);
+						fdReady = select(maxfd + 1, &_readfds, &_writefds, NULL, &tv);
 					}
 				}
 				catch(const ServerException &e)
@@ -143,82 +148,87 @@ int main(int argc, char *argv[]){
 					bytes_read = recv(connection, buffer, 8192, 0);
 					std::cout << RED << "recv: " << bytes_read << RESET << std::endl;
 					total_bytes += bytes_read;
-					std::cout << buffer << std::endl;
+					std::cout << "BUFFER: " << buffer << std::endl;
 					if(bytes_read > 0)
 						buffStr.append(buffer, bytes_read);
 					usleep(100);
 				}while(bytes_read > 0);
 				std::cout << BLUE << "After do while. Connection = " << connection << RESET << std::endl;
 				std::cout << "BuffStr:" << std::endl << buffStr << std::endl;
-				RequestHeader reqHeader = RequestHeader(buffStr, total_bytes + 1);
-				try
+				if(!(buffStr.empty()))
 				{
-					std::cout << BLUE << "Inside try config = cf. Host Port: " << (*servers[index]).GetHostPort() << "Get host: " << reqHeader.GetHost() << RESET <<std::endl;
-					config = cf.GetConfig((*servers[index]).GetHostPort(), reqHeader.GetHost());
-					if(config.isEmpty())
-						throw std::exception();
-				}
-				catch(const std::out_of_range& e)
-				{
-					std::cout << RED << "PORCO DIO" << RESET << std::endl;
-					continue;
-				}
-				catch(const std::exception &e)
-				{
-					std::cout << RED << "Error: no vaiable configuration" << RESET << std::endl;
-					continue;
-				}
-				ResponseHeader resHeader = ResponseHeader(servers[index], &reqHeader, &config);
-				std::string response;
-				std::cout << GREEN << "after resHeader" <<RESET <<std::endl;
-				try
-				{
-					if(reqHeader.GetMethod() == "POST" && reqHeader.GetBody().length() > config.GetLimitSizeBody())
+					RequestHeader reqHeader = RequestHeader(buffStr, total_bytes + 1);
+					try
 					{
-						resHeader = ResponseHeader(NULL, std::make_pair("413", config.GetErrorPath("413")));
-						throw ServerException(resHeader.getError().first,
-							resHeader.makeResponse(std::atoi(resHeader.getError().first.c_str())),
-							connection);
+						std::cout << BLUE << "Inside try config = cf. Host Port: " << (*servers[index]).GetHostPort() << "Get host: " << reqHeader.GetHost() << RESET <<std::endl;
+						config = cf.GetConfig((*servers[index]).GetHostPort(), reqHeader.GetHost());
+						if(config.isEmpty())
+							throw std::exception();
 					}
-					else
+					catch(const std::out_of_range& e)
 					{
-						if(!config.GetRedirectionCode())
-							response.append(resHeader.makeResponse(200));
+						std::cout << RED << "PORCO DIO" << RESET << std::endl;
+						continue;
+					}
+					catch(const std::exception &e)
+					{
+						std::cout << RED << "Error: no vaiable configuration" << RESET << std::endl;
+						continue;
+					}
+					ResponseHeader resHeader = ResponseHeader(servers[index], &reqHeader, &config);
+					std::string response;
+					std::cout << GREEN << "after resHeader" <<RESET <<std::endl;
+					try
+					{
+						if(reqHeader.GetMethod() == "POST" && reqHeader.GetBody().length() > config.GetLimitSizeBody())
+						{
+							resHeader = ResponseHeader(NULL, std::make_pair("413", config.GetErrorPath("413")));
+							throw ServerException(resHeader.getError().first,
+								resHeader.makeResponse(std::atoi(resHeader.getError().first.c_str())),
+								connection);
+						}
 						else
 						{
-							response.append(resHeader.makeResponse(config.GetRedirectionCode()));
-							std::string redir("Location: ");
-							redir.append(config.GetRedirectionUrl());
-							redir.append("\r\n");
-							response.insert(response.find('\n') + 1, redir);
+							if(!config.GetRedirectionCode())
+								response.append(resHeader.makeResponse(200));
+							else
+							{
+								response.append(resHeader.makeResponse(config.GetRedirectionCode()));
+								std::string redir("Location: ");
+								redir.append(config.GetRedirectionUrl());
+								redir.append("\r\n");
+								response.insert(response.find('\n') + 1, redir);
+							}
 						}
 					}
+					catch(const ServerException &e)
+					{
+						response = e.what();
+					}
+					std::string chunck;
+					int data_sent = 0;
+					std::cout << BLUE << "Before send" << RESET <<std::endl;
+					do
+					{
+						chunck = response.substr(0, 35000);
+						data_sent = send(connection, chunck.c_str(), chunck.size(), 0);
+						if(data_sent < 0)
+							break;
+						response = response.substr(data_sent);
+					} while (response.size());
+					if(FD_ISSET(connection, &_writefds) != 0)
+					{
+						buffStr.clear();
+						std::cout << BLUE << "After send" << connection << "sockfd: " << sockfd << RESET <<std::endl;
+						index = findServerByFD(servers, clients.Get_conn(connection)->sockfd);
+						FD_CLR(connection, &_writefds);
+						FD_CLR(sockfd, &_readfds);
+						if(clients.conn_delete(connection)!= 0)
+							close(connection);
+						std::cout << GREEN << "After clearing connections: " << connection << "sockfd: " << sockfd<< RESET << std::endl;
+						usleep(100);
+					}
 				}
-				catch(const ServerException &e)
-				{
-					response = e.what();
-				}
-				std::string chunck;
-				int data_sent = 0;
-				std::cout << BLUE << "Before send" << RESET <<std::endl;
-				do
-				{
-					chunck = response.substr(0, 35000);
-					data_sent = send(connection, chunck.c_str(), chunck.size(), 0);
-					if(data_sent < 0)
-						break;
-					response = response.substr(data_sent);
-				} while (response.size());
-				std::cout << BLUE << "After send" << RESET <<std::endl;
-
-				buffStr.clear();
-				index = findServerByFD(servers, clients.Get_conn(connection)->sockfd);
-				FD_CLR(connection, &_writefds);
-				FD_CLR(sockfd, &_readfds);
-				clients.conn_delete(connection);
-				close(connection);
-				std::cout << GREEN << "After clearing connections" << RESET << std::endl;
-				usleep(100);
 			}
 		}
 	}

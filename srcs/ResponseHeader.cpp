@@ -197,7 +197,8 @@ void ResponseHeader::setContentType(std::string path, std::string type)
 	}
 	size_t dotPos = path.rfind(".");
 	type = dotPos != std::string::npos ? path.substr(dotPos + 1, path.size() - dotPos) : "";
-	if (type == "html" || (type == "py" && route.GetCGIPath()[0] == "py") || _request->GetMethod() == "DELETE")
+	if (type == "html" || (type == "php" && route.GetCGIPath()[0] == "php")
+		|| (type == "py" && route.GetCGIPath()[0] == "py") || _request->GetMethod() == "DELETE")
 		_contentType = "text/html";
 	else if (type == "css")
 		_contentType = "text/css";
