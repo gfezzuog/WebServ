@@ -42,8 +42,6 @@ class ResponseHeader
 		std::pair<std::string, std::string> getError() const;
 		std::string getPath()
 		{
-			if(_path.empty())
-				std::cout<<"Path non esiste\n";
 			return _path;
 		}
 };

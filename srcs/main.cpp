@@ -164,7 +164,6 @@ int main(int argc, char *argv[])
 					resp = resp.substr(dataSent);
 				} while (resp.size());
 				bufferStr.clear();
-				std::cout << "evlist ident " << evList[i].ident << std::endl;
 				index = findServerByFD(servers, clients.Get_conn(evList[i].ident)->evIdent);
 				EV_SET((*servers[index]).GetEvSet(), evList[i].ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
 				kevent(kQueue, (*servers[index]).GetEvSet(), 1, NULL, 0, NULL);

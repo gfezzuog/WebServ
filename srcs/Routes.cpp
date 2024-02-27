@@ -28,8 +28,7 @@ void ConfigurationRoute::setMap(std::string config){
 				config.substr(start + 1, end - start - 1)));
 		config = config.substr(end + 1);
 	} while (end < config.size());
-	// for (std::map<std::string, std::string>::iterator i = _map.begin() ; i != _map.end(); i++)
-	// 	std::cout << GREEN << "first: " << RESET << std::left << std::setw(20) << std::setfill(' ') << (*i).first << GREEN << " second: " << RESET << (*i).second << std::endl;
+
 }
 
 std::string ConfigurationRoute::GetPath(){
