@@ -4,22 +4,21 @@
 
 class Clients
 {
-	private:
-		struct c_data
-		{
-			int fd;
-			int sockfd;
-			c_data(int conn, int socketfd) : fd(conn), sockfd(socketfd){return;}
-		};
+private:
+	struct client_data
+	{
+		int fd;
+		int evIdent;
+		Configuration *config;
+		client_data(int conn, int evId) : fd(conn), evIdent(evId){ return; }
+	} ;
 
-		std::vector<c_data> _clients;
+	std::vector<client_data> _clients;
+public:
+	Clients();
+	~Clients();
 
-	public:
-		Clients();
-		~Clients();
-
-		c_data *Get_conn(int fd);
-		int conn_add(int fd, int socketfd);
-		int conn_delete(int fd);
-		
+	client_data *Get_conn(int fd);
+	int Conn_add(int fd, int evIdent);
+	int Conn_delete(int fd);
 };

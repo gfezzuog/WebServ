@@ -1,46 +1,37 @@
-#include "../incs/WebServer.h"
+# include "../incs/WebServer.h"
 
-Server::Server(unsigned int port, std::string host, Configuration* config)
-    : _port(port), _host(host), _config(config) {
-    }
+Server::Server(unsigned int port, std::string host, Configuration *config) : _port(port), _host(host), _config(config) {}
 
 Server::~Server() {}
 
-void Server::connect() {
-    _socketfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (_socketfd == -1) {
-        throw OpenSocketException(std::string("Failed to create socket. errno: ").append(to_string(errno)));
-    }
-    _sockAddress.sin_family = AF_INET;
-    if ((_sockAddress.sin_addr.s_addr = inet_addr(_host.c_str())) == INADDR_NONE) {
-        throw OpenSocketException(std::string("Host ").append(std::string(_host)).append(" is not valid."));
-    }
-    int opt = 1;
-    setsockopt(_socketfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
-    setsockopt(_socketfd, SOL_SOCKET, SO_NOSIGPIPE, &opt, sizeof(int));
-    _sockAddress.sin_port = htons(_port);
-    if (bind(_socketfd, (struct sockaddr*)&_sockAddress, sizeof(_sockAddress)) < 0) {
-        throw OpenSocketException(std::string("Failed to bind port ").append(to_string(_port)).append(". errno: ").append(to_string(errno)));
-    }
-    if (listen(_socketfd, 10) < 0) {
-        throw OpenSocketException(std::string("Failed to listen on socket. errno: ").append(to_string(errno)));
-    }
-    std::cout << "Connected to host: " << _host << " and port: " << _port << std::endl;
+void Server::connect(int kQueue) {
+	_sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (_sockfd == -1) {
+		throw OpenSocketException(std::string("Failed to create socket. errno: ").append(std::to_string(errno)));
+	}
+	_sockAddr.sin_family = AF_INET;
+	if ((_sockAddr.sin_addr.s_addr = inet_addr(_host.c_str())) == INADDR_NONE) {
+		throw OpenSocketException(std::string("Host ").append(std::string(_host)).append(" is not valid."));
+	}
+	bool b = 1;
+	setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR, &b, sizeof(int));
+	setsockopt(_sockfd, SOL_SOCKET, SO_NOSIGPIPE, &b, sizeof(int));
+	_sockAddr.sin_port = htons(_port);
+	if (bind(_sockfd, (struct sockaddr*)&_sockAddr, sizeof(_sockAddr)) < 0) {
+		throw OpenSocketException(std::string("Failed to bind port ").append(std::to_string(_port)).append(". errno: ").append(std::to_string(errno)));
+	}
+	if (listen(_sockfd, 10) < 0) {
+		throw OpenSocketException(std::string("Failed to listen on socket. errno: ").append(std::to_string(errno)));
+	}
+	EV_SET(&_evSet, _sockfd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+	kevent(kQueue, &_evSet, 1, NULL, 0, NULL);
+	std::cout << GREEN << "Connected to host: " << BLUE << _host << GREEN << " and port: " << BLUE << _port << RESET <<std::endl;
 }
 
 void Server::disconnect() {
-    close(_socketfd);
+	close(_sockfd);
 }
 
-Configuration *Server::GetConfig() {
-    return _config;
-}
-
-Configuration Server::GetConf(){
-    return *_config;
-}
-
-void Server::closing()
-{
-    close(_socketfd);
+Configuration Server::GetConfig() {
+	return *_config;
 }

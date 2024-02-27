@@ -26,8 +26,8 @@
 # include <ctype.h>
 # include <sys/stat.h>
 # include <sys/socket.h>
-//# include <sys/event.h>
-#include <sys/wait.h>
+# include <sys/event.h>
+# include <sys/wait.h>
 # include <arpa/inet.h>
 # include <netinet/in.h>
 # include <unistd.h>
@@ -53,7 +53,6 @@
 # include "OpenSocketException.hpp"
 # include "ServerException.hpp"
 
-void printReadFDs(fd_set readfds);
 
 
 #endif

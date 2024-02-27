@@ -1,46 +1,36 @@
 #include "../incs/WebServer.h"
 
-Clients::Clients()
-{}
+Clients::Clients() { return ; }
 
 Clients::~Clients()
-{}
-
-//la funzione cerca un oggetto c_data nel vettore _clients in base al valore di fd. Se lo trova, restituisce un puntatore a quell'oggetto; altrimenti, restituisce NULL.
-Clients::c_data *Clients::Get_conn(int fd)
 {
-	int j = 0;
-	std::vector<c_data>::iterator i = _clients.begin();
-	for (; i != _clients.end(); i++, j++)
-		if((*i).fd == fd)
-			return(&(*i));
-	return (NULL);
 }
 
-//La funzione fcntl, serve per controllare le proprietà di un fd, il primo argomento è fd, il secondo il comando e il terzo un argomento opzionale dipendete dal comando.
-//int flags = fcntl(fd, F_GETFL, 0); qui controlliamo le flag del nostro fd, nel momento in cui assert non fallisce, settiamo le flag impostando la modalitá non bloccante: fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-int Clients::conn_add(int fd, int socketfd)
-{
-	if (fd < 1)
-		return (-1);
+Clients::client_data *Clients::Get_conn(int fd) {
+	int n = 0;
+	std::vector<client_data>::iterator i = _clients.begin();
+
+	for ( ; i != _clients.end(); i++, n++)
+		if ((*i).fd == fd)
+			return &(*i);
+	return NULL;
+}
+
+int Clients::Conn_add(int fd, int evIdent) {
+	if (fd < 1) return -1;
 	int flags = fcntl(fd, F_GETFL, 0);
-	assert(flags >= 0); //è una funzione che controlla la veridicitá dell'espressione, se falsa stampa un messaggio di errore
+	assert(flags >= 0);
 	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-	_clients.push_back(c_data(fd, socketfd));
-	return(0);
+	_clients.push_back(client_data(fd, evIdent));
+	return 0;
 }
 
-//questa funzione serve per eliminare una connessione ad un fd fornito come argomento
-int Clients::conn_delete(int fd)
-{
-	if (fd < 1)
-		return(-1);
-	c_data *cd = Get_conn(fd);
-	if (!cd)
-		return(-1);
-	std::vector<c_data>::iterator i =_clients.begin();
-	for (; (*i).fd != (*cd).fd; i++)
-		;
-	_clients.erase(i);
+int Clients::Conn_delete(int fd) {
+	if (fd < 1) return -1;
+	client_data* cd = Get_conn(fd);
+	if (!cd) return -1;
+	std::vector<client_data>::iterator it = _clients.begin();
+	for ( ; (*it).fd != (*cd).fd; it++) ;
+	_clients.erase(it);
 	return close(fd);
 }

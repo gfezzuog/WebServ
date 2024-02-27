@@ -1,34 +1,52 @@
-NAME	=	WebServ
+NAME = webserv
 
-CC		=	g++
+S		= srcs/
+O		= objs/
+I		= incs/
 
-FLAGS	=	-std=c++98 -Wall -Wextra -Werror -g
+SRCS =  Client.cpp \
+		Config.cpp \
+		ConfigFile.cpp \
+		Routes.cpp \
+		RequestHeader.cpp \
+		ResponseHeader.cpp \
+		Server.cpp \
+		main.cpp
 
-RM		=	rm -rf
+CC = c++
 
-SRC		=	./srcs/main.cpp ./srcs/Server.cpp ./srcs/Routes.cpp ./srcs/Config.cpp \
-			./srcs/ConfigFile.cpp ./srcs/Client.cpp ./srcs/RequestHeader.cpp  ./srcs/ResponseHeader.cpp \
-		
+FLAGS = -Wall -Wextra -Werror -std=c++98
 
-OBJ	=	$(SRC:.cpp=.o)
+SRCS	:= $(foreach file,$(SRCS),$S$(file))
+OBJS	= $(SRCS:$S%=$O%.o)
+DEPS	= $(SRCS:$S%=$D%.d)
 
-%.o:%.cpp
-			$(CC) $(FLAGS) -c $< -o $@
+all : $(NAME)
 
-$(NAME):	$(OBJ)
-			$(CC) $(FLAGS) $(SRC) -o $(NAME)
-			@echo "WebServ compiled"
+$O:
+	@mkdir $@
 
-all:		$(NAME)
+$(OBJS): | $O
 
-clean:
-			${RM} $(OBJ)
-			rm -rf uploads
-			find . -name "*.index.html" -type f -delete
+$(OBJS): $O%.o: $S%
+	@echo "Compiling $^: "
+	@$(CC) $(FLAGS) -c $< -o $@
+	@echo "✓"
 
-fclean: 	clean
-			${RM} $(NAME) ${OBJ}
+$(NAME): $(OBJS)
+	@echo "Assembling $(NAME)"
+	@$(CC) $^ -o $@
+	@mkdir -p uploads
 
-re:			fclean all
+clean :
+	rm -rf $(O)
+	rm -rf uploads
+	find . -name "*.index.html" -type f -delete
+
+fclean : clean
+	rm -rf ${NAME}
+
+re : fclean all
+
 
 .PHONY:		all clean fclean re
