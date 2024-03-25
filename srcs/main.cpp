@@ -9,6 +9,8 @@ static void signal_handler(int i)
 		run = 0;
 }
 
+//ao
+
 static int findServerByFD(std::vector<Server *> servers, int ident)
 {
 	int i = 0;
