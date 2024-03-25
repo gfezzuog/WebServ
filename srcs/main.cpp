@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 				int connection = accept(evList[i].ident, (struct sockaddr *)(*servers[index]).GetSockAddr(), (socklen_t *)&addrlen);
 				try
 				{
-					if (clients.Conn_add(connection, evList[i].ident))
+					if (clients.C_structAdd(connection, evList[i].ident))
 					{
 						ResponseHeader resHeader(NULL, std::make_pair("500", DEFAULT_ERROR_PATH));
 						throw ServerException("500", resHeader.makeResponse(500), connection);
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 			{
 				Configuration config;
 				char buffer[8192];
-				index = findServerByFD(servers, clients.Get_conn(evList[i].ident)->evIdent);
+				index = findServerByFD(servers, clients.C_structGet(evList[i].ident)->evIdent);
 				size_t totalBytesRead = 0;
 				int bytesRead = 0;
 				do
@@ -164,10 +164,10 @@ int main(int argc, char *argv[])
 					resp = resp.substr(dataSent);
 				} while (resp.size());
 				bufferStr.clear();
-				index = findServerByFD(servers, clients.Get_conn(evList[i].ident)->evIdent);
+				index = findServerByFD(servers, clients.C_structGet(evList[i].ident)->evIdent);
 				EV_SET((*servers[index]).GetEvSet(), evList[i].ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
 				kevent(kQueue, (*servers[index]).GetEvSet(), 1, NULL, 0, NULL);
-				clients.Conn_delete(evList[i].ident);
+				clients.C_structDel(evList[i].ident);
 				usleep(100);
 			}
 		}

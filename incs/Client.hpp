@@ -18,7 +18,7 @@ public:
 	Clients();
 	~Clients();
 
-	client_data *Get_conn(int fd);
-	int Conn_add(int fd, int evIdent);
-	int Conn_delete(int fd);
+	client_data *C_structGet(int fd);
+	int C_structAdd(int fd, int evIdent);
+	int C_structDel(int fd);
 };
